@@ -1,0 +1,34 @@
+{
+  "items": [
+    {
+      "_id": "1",
+      "name": "Vacanță Tokyo",
+      "price": 3200,
+      "priority": "high",
+      "purchased": false,
+      "breakdown": [
+        {
+          "key": "accommodation",
+          "amount": 1200,
+          "purchased": false
+        },
+        {
+          "key": "flights",
+          "amount": 1500,
+          "purchased": false
+        },
+        {
+          "key": "food",
+          "amount": 300,
+          "purchased": false
+        },
+        {
+          "key": "activities",
+          "amount": 200,
+          "purchased": false
+        }
+      ],
+      "createdAt": "2026-03-01T10:00:00.000Z"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import type { HighlightColor, WishlistItem } from '../types';
+import { type HighlightColor, type WishlistItem } from '../types';
 
 export const BD_LABELS: Record<string, string> = {
   accommodation: 'cazare',
