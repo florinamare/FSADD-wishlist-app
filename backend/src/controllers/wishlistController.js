@@ -65,13 +65,6 @@ const updateBreakdownItem = async (req, res) => {
     const { id, key } = req.params;
     const { purchased } = req.body;
 
-    const validKeys = ['accommodation', 'flights', 'food', 'activities'];
-    if (!validKeys.includes(key)) {
-      return res.status(400).json({
-        error: `Invalid key. Accepted values: ${validKeys.join(', ')}`,
-      });
-    }
-
     if (typeof purchased !== 'boolean') {
       return res.status(400).json({ error: 'Field purchased must be a boolean.' });
     }

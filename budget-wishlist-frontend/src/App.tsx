@@ -1,6 +1,7 @@
 import { BudgetHeader } from './components/BudgetHeader';
 import { AddItemForm } from './components/AddItemForm';
 import { WishlistItem } from './components/WishlistItem';
+import { Toast } from './components/Toast';
 import { useWishlist } from './hooks/useWishlist';
 import './App.css';
 
@@ -22,6 +23,7 @@ export default function App() {
 
   return (
     <main className="app">
+      <Toast message={error} />
       <BudgetHeader
         budget={budget}
         totalSpent={totalSpent}
@@ -36,8 +38,7 @@ export default function App() {
         <span className="section-label">wishes</span>
 
         {isLoading && <p className="state-msg">loading...</p>}
-        {error && <p className="state-msg error">{error}</p>}
-        {!isLoading && !error && items.length === 0 && (
+        {!isLoading && items.length === 0 && (
           <p className="state-msg">no wishes added yet</p>
         )}
 

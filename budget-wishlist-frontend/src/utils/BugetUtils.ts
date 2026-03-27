@@ -1,18 +1,86 @@
 import { type HighlightColor, type WishlistItem } from '../types';
 
-export const BD_LABELS: Record<string, string> = {
-  accommodation: 'accommodation',
-  flights: 'flights',
-  food: 'food',
-  activities: 'activities',
+// ─── Category Templates ───────────────────────────────────────
+
+export type CategoryType = 'vacation' | 'event' | 'renovation' | 'fitness' | 'custom';
+
+export interface FieldTemplate {
+  key: string;
+  label: string;
+  icon: string;
+}
+
+export interface CategoryTemplate {
+  label: string;
+  icon: string;
+  fields: FieldTemplate[];
+}
+
+export const CATEGORY_TEMPLATES: Record<CategoryType, CategoryTemplate> = {
+  vacation: {
+    label: 'Vacation',
+    icon: '✈️',
+    fields: [
+      { key: 'flights',       label: 'Flights',        icon: '✈️' },
+      { key: 'accommodation', label: 'Accommodation',   icon: '🏨' },
+      { key: 'food',          label: 'Food',            icon: '🍜' },
+      { key: 'activities',    label: 'Activities',      icon: '🎭' },
+    ],
+  },
+  event: {
+    label: 'Event',
+    icon: '🎉',
+    fields: [
+      { key: 'venue',       label: 'Venue',         icon: '🏛️' },
+      { key: 'food',        label: 'Food',          icon: '🍽️' },
+      { key: 'outfit',      label: 'Outfit',        icon: '👗' },
+      { key: 'photo_video', label: 'Photo / Video', icon: '📸' },
+    ],
+  },
+  renovation: {
+    label: 'Renovation',
+    icon: '🔨',
+    fields: [
+      { key: 'materials',  label: 'Materials',       icon: '🧱' },
+      { key: 'furniture',  label: 'Furniture',       icon: '🛋️' },
+      { key: 'labor',      label: 'Labor',           icon: '👷' },
+      { key: 'tools',      label: 'Tools & Equipment', icon: '🔧' },
+    ],
+  },
+  fitness: {
+    label: 'Fitness',
+    icon: '💪',
+    fields: [
+      { key: 'gym',         label: 'Gym Membership',    icon: '🏋️' },
+      { key: 'equipment',   label: 'Equipment',         icon: '🏃' },
+      { key: 'supplements', label: 'Supplements',       icon: '💊' },
+      { key: 'trainer',     label: 'Trainer / Classes', icon: '🧑‍🏫' },
+    ],
+  },
+  custom: {
+    label: 'Custom',
+    icon: '✏️',
+    fields: [],
+  },
 };
 
-export const BD_ICONS: Record<string, string> = {
-  accommodation: '🏨',
-  flights: '✈️',
-  food: '🍜',
-  activities: '🎭',
-};
+// Build a flat key → label/icon lookup from all predefined templates
+const KEY_LABEL_MAP: Record<string, string> = {};
+const KEY_ICON_MAP: Record<string, string> = {};
+Object.values(CATEGORY_TEMPLATES).forEach((cat) => {
+  cat.fields.forEach((f) => {
+    KEY_LABEL_MAP[f.key] = f.label;
+    KEY_ICON_MAP[f.key] = f.icon;
+  });
+});
+
+export const getFieldLabel = (key: string): string =>
+  KEY_LABEL_MAP[key] ?? key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+export const getFieldIcon = (key: string): string =>
+  KEY_ICON_MAP[key] ?? '•';
+
+// ─── Budget Utils ─────────────────────────────────────────────
 
 export const formatCurrency = (amount: number): string =>
   Math.round(amount).toLocaleString('ro-RO') + ' RON';

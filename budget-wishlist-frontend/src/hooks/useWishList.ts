@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { wishlistApi } from '../api/WishlistApi';
 import type { WishlistItem, NewWishlistItem, BudgetAdjustment, AdjustType } from '../types';
-import { getTotalSpent } from '../utils/BugetUtils';
+import { getTotalSpent, formatCurrency } from '../utils/BugetUtils';
 
 const DEFAULT_BUDGET = 5000;
 
@@ -71,6 +71,14 @@ export const useWishlist = () => {
         const allDone = item.breakdown.every((b) => b.purchased);
         const newPurchased = !allDone;
 
+        if (newPurchased) {
+          const unpaidCost = item.breakdown.reduce((sum, b) => sum + (b.purchased ? 0 : b.amount), 0);
+          if (unpaidCost > remaining) {
+            setError(`You can't afford "${item.name}" right now. You need ${formatCurrency(unpaidCost - remaining)} more.`);
+            return;
+          }
+        }
+
         await Promise.all(
           item.breakdown
             .filter((b) => b.purchased !== newPurchased)
@@ -79,6 +87,10 @@ export const useWishlist = () => {
         const updated = await wishlistApi.togglePurchased(id, newPurchased);
         setItems((prev) => prev.map((i) => (i._id === id ? updated : i)));
       } else {
+        if (!item.purchased && item.price > remaining) {
+          setError(`You can't afford "${item.name}" right now. You need ${formatCurrency(item.price - remaining)} more.`);
+          return;
+        }
         const updated = await wishlistApi.togglePurchased(id, !item.purchased);
         setItems((prev) => prev.map((i) => (i._id === id ? updated : i)));
       }
@@ -101,6 +113,12 @@ export const useWishlist = () => {
       if (!bd) return;
 
       const newBdPurchased = !bd.purchased;
+
+      if (newBdPurchased && bd.amount > remaining) {
+        setError(`Not enough budget for this. You need ${formatCurrency(bd.amount - remaining)} more.`);
+        return;
+      }
+
       await wishlistApi.toggleBreakdownItem(itemId, key, newBdPurchased);
 
       const newBreakdown = item.breakdown.map((b) =>

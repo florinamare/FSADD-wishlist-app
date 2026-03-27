@@ -3,7 +3,7 @@ export type HighlightColor = 'green' | 'yellow' | 'red';
 export type AdjustType = 'add' | 'subtract';
 
 export interface BreakdownItem {
-  key: 'accommodation' | 'flights' | 'food' | 'activities';
+  key: string;
   amount: number;
   purchased: boolean;
 }

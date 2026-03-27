@@ -1,5 +1,5 @@
 import { BreakdownItem } from '../types';
-import { BD_ICONS, BD_LABELS, formatCurrency } from '../utils/BugetUtils';
+import { getFieldIcon, getFieldLabel, formatCurrency } from '../utils/BugetUtils';
 
 interface Props {
   breakdown: BreakdownItem[];
@@ -18,7 +18,7 @@ export const ItemBreakdown = ({ breakdown, onToggle }: Props) => {
           <button
             className={`bd-check ${b.purchased ? 'bd-check-done' : ''}`}
             onClick={() => onToggle(b.key)}
-            aria-label={`Mark ${BD_LABELS[b.key]} as ${b.purchased ? 'unpaid' : 'paid'}`}
+            aria-label={`Mark ${getFieldLabel(b.key)} as ${b.purchased ? 'unpaid' : 'paid'}`}
           >
             {b.purchased && (
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -26,9 +26,9 @@ export const ItemBreakdown = ({ breakdown, onToggle }: Props) => {
               </svg>
             )}
           </button>
-          <span className="bd-icon">{BD_ICONS[b.key]}</span>
+          <span className="bd-icon">{getFieldIcon(b.key)}</span>
           <span className={`bd-label ${b.purchased ? 'bd-done' : ''}`}>
-            {BD_LABELS[b.key]}
+            {getFieldLabel(b.key)}
           </span>
           <span className={`bd-amount ${b.purchased ? 'bd-done' : ''}`}>
             {formatCurrency(b.amount)}

@@ -260,3 +260,59 @@ body {
   height: 4px; overflow: hidden;
 }
 .bd-progress-bar { height: 100%; border-radius: 99px; background: #185FA5; transition: width 0.3s ease; }
+
+/* ─── Category Toggles ───────────────────────────────────────── */
+.category-toggles { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.btn-category {
+  padding: 5px 12px; border: 1px solid var(--color-border);
+  border-radius: 99px; background: transparent;
+  color: var(--color-text-muted); font-size: 12px;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.btn-category:hover { background: var(--color-surface); color: var(--color-text); }
+.btn-category.btn-category-active {
+  background: var(--color-text); color: var(--color-bg);
+  border-color: var(--color-text);
+}
+
+/* ─── Custom Field Buttons ───────────────────────────────────── */
+.field-row { display: flex; gap: 6px; }
+.field-row input { flex: 1; }
+.btn-field-add, .btn-field-remove {
+  padding: 7px 11px; border: 1px solid var(--color-border);
+  border-radius: 8px; background: transparent;
+  color: var(--color-text-muted); font-size: 14px;
+  cursor: pointer; flex-shrink: 0; transition: background 0.15s;
+}
+.btn-field-add:hover, .btn-field-remove:hover { background: var(--color-surface); }
+
+/* ─── Toast Notification ─────────────────────────────────────── */
+.toast {
+  position: fixed;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid #EF9F27;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--color-text);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-width: 420px;
+  width: calc(100% - 2rem);
+  animation: toast-in 0.25s ease;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.toast-icon { font-size: 15px; flex-shrink: 0; color: #854F0B; }
+.toast-message { flex: 1; line-height: 1.4; }

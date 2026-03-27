@@ -4,8 +4,9 @@ const BreakdownItemSchema = new mongoose.Schema(
   {
     key: {
       type: String,
-      enum: ['accommodation', 'flights', 'food', 'activities'],
       required: true,
+      trim: true,
+      maxlength: [100, 'Key cannot exceed 100 characters.'],
     },
     amount: {
       type: Number,
