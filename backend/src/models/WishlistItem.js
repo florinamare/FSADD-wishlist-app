@@ -24,14 +24,14 @@ const WishlistItemSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Numele este obligatoriu.'],
+      required: [true, 'Name is required.'],
       trim: true,
-      maxlength: [200, 'Numele nu poate depăși 200 de caractere.'],
+      maxlength: [200, 'Name cannot exceed 200 characters.'],
     },
     price: {
       type: Number,
-      required: [true, 'Prețul este obligatoriu.'],
-      min: [0, 'Prețul nu poate fi negativ.'],
+      required: [true, 'Price is required.'],
+      min: [0, 'Price cannot be negative.'],
     },
     priority: {
       type: String,

@@ -18,8 +18,15 @@ export const AddItemForm = ({ onAdd }: Props) => {
   });
   const [loading, setLoading] = useState(false);
 
+  const breakdownTotal = BREAKDOWN_KEYS.reduce(
+    (sum, key) => sum + (parseFloat(breakdown[key]) || 0),
+    0
+  );
+
+  const effectivePrice = hasBreakdown ? breakdownTotal : parseFloat(price);
+
   const handleSubmit = async () => {
-    if (!name.trim() || !price || parseFloat(price) <= 0) return;
+    if (!name.trim() || effectivePrice <= 0) return;
 
     let parsedBreakdown: BreakdownItem[] | null = null;
     if (hasBreakdown) {
@@ -33,7 +40,7 @@ export const AddItemForm = ({ onAdd }: Props) => {
       setLoading(true);
       await onAdd({
         name: name.trim(),
-        price: parseFloat(price),
+        price: effectivePrice,
         priority,
         breakdown: parsedBreakdown,
       });
@@ -51,30 +58,32 @@ export const AddItemForm = ({ onAdd }: Props) => {
     <div className="form">
       <div className="form-main-row">
         <div className="field">
-          <label>nume item</label>
+          <label>item name</label>
           <input
             type="text"
-            placeholder="ex: Vacanță Tokyo"
+            placeholder="e.g. Tokyo Vacation"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
         </div>
         <div className="field" style={{ maxWidth: 110 }}>
-          <label>preț (RON)</label>
+          <label>price (RON)</label>
           <input
             type="number"
             placeholder="1200"
             min="0"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
+            value={hasBreakdown ? (breakdownTotal > 0 ? breakdownTotal : '') : price}
+            onChange={(e) => { if (!hasBreakdown) setPrice(e.target.value); }}
+            readOnly={hasBreakdown}
+            style={hasBreakdown ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
           />
         </div>
         <div className="field" style={{ maxWidth: 110 }}>
-          <label>prioritate</label>
+          <label>priority</label>
           <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)}>
-            <option value="high">înaltă</option>
-            <option value="medium">medie</option>
-            <option value="low">scăzută</option>
+            <option value="high">high</option>
+            <option value="medium">medium</option>
+            <option value="low">low</option>
           </select>
         </div>
       </div>
@@ -86,10 +95,10 @@ export const AddItemForm = ({ onAdd }: Props) => {
             checked={hasBreakdown}
             onChange={(e) => setHasBreakdown(e.target.checked)}
           />
-          item complex (cu breakdown)
+          complex item (with breakdown)
         </label>
         <button className="btn-add" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'se adaugă...' : '+ adaugă ↗'}
+          {loading ? 'adding...' : '+ add ↗'}
         </button>
       </div>
 

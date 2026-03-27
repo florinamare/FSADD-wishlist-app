@@ -12,9 +12,9 @@ interface Props {
 }
 
 const PRIORITY_LABEL: Record<string, string> = {
-  high: 'înaltă',
-  medium: 'medie',
-  low: 'scăzută',
+  high: 'high',
+  medium: 'medium',
+  low: 'low',
 };
 
 export const WishlistItem = ({ item, remainingBudget, onToggle, onToggleBreakdown, onDelete }: Props) => {
@@ -31,7 +31,7 @@ export const WishlistItem = ({ item, remainingBudget, onToggle, onToggleBreakdow
         <button
           className={`check-btn ${state === 'full' ? 'check-done' : ''}`}
           onClick={() => onToggle(item._id)}
-          aria-label={`Marchează ${item.name}`}
+          aria-label={`Mark ${item.name}`}
         >
           {state === 'full' && (
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -51,11 +51,11 @@ export const WishlistItem = ({ item, remainingBudget, onToggle, onToggleBreakdow
               {PRIORITY_LABEL[item.priority]}
             </span>
             {state === 'partial' && (
-              <span className="badge badge-partial">parțial achitat</span>
+              <span className="badge badge-partial">partially paid</span>
             )}
             {item.breakdown && (
               <button className="toggle-link" onClick={() => setShowBreakdown((p) => !p)}>
-                {showBreakdown ? '▲ ascunde' : '▼ detalii'}
+                {showBreakdown ? '▲ hide' : '▼ details'}
               </button>
             )}
           </div>
@@ -65,9 +65,9 @@ export const WishlistItem = ({ item, remainingBudget, onToggle, onToggleBreakdow
           {state === 'partial' ? (
             <>
               <div className="price-paid">
-                {formatCurrency(spent)} <span className="price-paid-label">plătit</span>
+                {formatCurrency(spent)} <span className="price-paid-label">paid</span>
               </div>
-              <div className="price-remaining">{formatCurrency(remaining)} rămas</div>
+              <div className="price-remaining">{formatCurrency(remaining)} left</div>
             </>
           ) : (
             <div className={`item-price ${state === 'full' ? 'price-done' : ''}`}>
@@ -76,7 +76,7 @@ export const WishlistItem = ({ item, remainingBudget, onToggle, onToggleBreakdow
           )}
         </div>
 
-        <button className="btn-delete" onClick={() => onDelete(item._id)} aria-label="Șterge">
+        <button className="btn-delete" onClick={() => onDelete(item._id)} aria-label="Delete">
           ✕
         </button>
       </div>

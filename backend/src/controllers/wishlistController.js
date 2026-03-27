@@ -6,7 +6,7 @@ const getItems = async (req, res) => {
     const items = await WishlistItem.find().sort({ createdAt: -1 });
     res.json(items);
   } catch (err) {
-    res.status(500).json({ error: 'Eroare la obținerea itemelor.' });
+    res.status(500).json({ error: 'Failed to retrieve items.' });
   }
 };
 
@@ -16,7 +16,7 @@ const createItem = async (req, res) => {
     const { name, price, priority, breakdown } = req.body;
 
     if (!name || price === undefined) {
-      return res.status(400).json({ error: 'Câmpurile name și price sunt obligatorii.' });
+      return res.status(400).json({ error: 'Fields name and price are required.' });
     }
 
     const item = new WishlistItem({
@@ -33,7 +33,7 @@ const createItem = async (req, res) => {
     if (err.name === 'ValidationError') {
       return res.status(400).json({ error: err.message });
     }
-    return res.status(500).json({ error: 'Eroare la adăugarea itemului.' });
+    return res.status(500).json({ error: 'Failed to add item.' });
   }
 };
 
@@ -43,7 +43,7 @@ const updatePurchased = async (req, res) => {
     const { purchased } = req.body;
 
     if (typeof purchased !== 'boolean') {
-      return res.status(400).json({ error: 'Câmpul purchased trebuie să fie boolean.' });
+      return res.status(400).json({ error: 'Field purchased must be a boolean.' });
     }
 
     const item = await WishlistItem.findByIdAndUpdate(
@@ -52,10 +52,10 @@ const updatePurchased = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    if (!item) return res.status(404).json({ error: 'Item negăsit.' });
+    if (!item) return res.status(404).json({ error: 'Item not found.' });
     return res.json(item);
   } catch (err) {
-    return res.status(500).json({ error: 'Eroare la actualizarea itemului.' });
+    return res.status(500).json({ error: 'Failed to update item.' });
   }
 };
 
@@ -68,12 +68,12 @@ const updateBreakdownItem = async (req, res) => {
     const validKeys = ['accommodation', 'flights', 'food', 'activities'];
     if (!validKeys.includes(key)) {
       return res.status(400).json({
-        error: `Key invalid. Valori acceptate: ${validKeys.join(', ')}`,
+        error: `Invalid key. Accepted values: ${validKeys.join(', ')}`,
       });
     }
 
     if (typeof purchased !== 'boolean') {
-      return res.status(400).json({ error: 'Câmpul purchased trebuie să fie boolean.' });
+      return res.status(400).json({ error: 'Field purchased must be a boolean.' });
     }
 
     const item = await WishlistItem.findByIdAndUpdate(
@@ -86,10 +86,10 @@ const updateBreakdownItem = async (req, res) => {
       }
     );
 
-    if (!item) return res.status(404).json({ error: 'Item negăsit.' });
+    if (!item) return res.status(404).json({ error: 'Item not found.' });
     return res.json(item);
   } catch (err) {
-    return res.status(500).json({ error: 'Eroare la actualizarea breakdown-ului.' });
+    return res.status(500).json({ error: 'Failed to update breakdown.' });
   }
 };
 
@@ -97,10 +97,10 @@ const updateBreakdownItem = async (req, res) => {
 const deleteItem = async (req, res) => {
   try {
     const item = await WishlistItem.findByIdAndDelete(req.params.id);
-    if (!item) return res.status(404).json({ error: 'Item negăsit.' });
-    return res.json({ message: 'Item șters cu succes.' });
+    if (!item) return res.status(404).json({ error: 'Item not found.' });
+    return res.json({ message: 'Item deleted successfully.' });
   } catch (err) {
-    return res.status(500).json({ error: 'Eroare la ștergerea itemului.' });
+    return res.status(500).json({ error: 'Failed to delete item.' });
   }
 };
 

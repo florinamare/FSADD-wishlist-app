@@ -1,4 +1,9 @@
-import type { WishlistItem, NewWishlistItem } from '../types';
+import type { WishlistItem, NewWishlistItem, BudgetAdjustment, AdjustType } from '../types';
+
+export interface BudgetState {
+  amount: number;
+  history: BudgetAdjustment[];
+}
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -41,4 +46,14 @@ export const wishlistApi = {
 
   deleteItem: (id: string): Promise<void> =>
     fetch(`${BASE_URL}/items/${id}`, { method: 'DELETE' }).then(handleResponse),
+
+  getBudget: (): Promise<BudgetState> =>
+    fetch(`${BASE_URL}/budget`).then(handleResponse),
+
+  adjustBudget: (type: AdjustType, amount: number, note?: string): Promise<BudgetState> =>
+    fetch(`${BASE_URL}/budget`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, amount, note }),
+    }).then(handleResponse),
 };

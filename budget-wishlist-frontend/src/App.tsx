@@ -33,12 +33,12 @@ export default function App() {
       <AddItemForm onAdd={addItem} />
 
       <section>
-        <span className="section-label">dorințe</span>
+        <span className="section-label">wishes</span>
 
-        {isLoading && <p className="state-msg">se încarcă...</p>}
+        {isLoading && <p className="state-msg">loading...</p>}
         {error && <p className="state-msg error">{error}</p>}
         {!isLoading && !error && items.length === 0 && (
-          <p className="state-msg">nicio dorință adăugată încă</p>
+          <p className="state-msg">no wishes added yet</p>
         )}
 
         {items.map((item) => (

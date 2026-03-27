@@ -18,7 +18,7 @@ export const ItemBreakdown = ({ breakdown, onToggle }: Props) => {
           <button
             className={`bd-check ${b.purchased ? 'bd-check-done' : ''}`}
             onClick={() => onToggle(b.key)}
-            aria-label={`Marchează ${BD_LABELS[b.key]} ca ${b.purchased ? 'neplătit' : 'plătit'}`}
+            aria-label={`Mark ${BD_LABELS[b.key]} as ${b.purchased ? 'unpaid' : 'paid'}`}
           >
             {b.purchased && (
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -38,8 +38,8 @@ export const ItemBreakdown = ({ breakdown, onToggle }: Props) => {
 
       <div className="bd-progress">
         <div className="bd-progress-meta">
-          <span>{pct}% achitat</span>
-          <span>{formatCurrency(paid)} din {formatCurrency(total)}</span>
+          <span>{pct}% paid</span>
+          <span>{formatCurrency(paid)} of {formatCurrency(total)}</span>
         </div>
         <div className="bd-progress-bar-wrap">
           <div className="bd-progress-bar" style={{ width: `${pct}%` }} />

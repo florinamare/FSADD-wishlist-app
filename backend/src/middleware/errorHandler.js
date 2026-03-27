@@ -7,7 +7,7 @@ const handleCastError = (res, err) => {
 
 // Middleware global de erori — trebuie să fie ultimul app.use()
 const errorHandler = (err, req, res, next) => {
-  console.error('❌ Eroare neașteptată:', err.message);
+  console.error('❌ Unexpected error:', err.message);
 
   if (err.name === 'CastError') {
     return handleCastError(res, err);

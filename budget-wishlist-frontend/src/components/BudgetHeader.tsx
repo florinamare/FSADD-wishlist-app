@@ -24,11 +24,11 @@ export const BudgetHeader = ({ budget, totalSpent, remaining, budgetHistory, onA
   const handleAdjust = () => {
     const value = parseFloat(amount);
     if (isNaN(value) || value <= 0) {
-      setError('Introdu o sumă validă.');
+      setError('Please enter a valid amount.');
       return;
     }
     if (adjustType === 'subtract' && value > budget) {
-      setError('Nu poți scoate mai mult decât bugetul total.');
+      setError('Cannot subtract more than the total budget.');
       return;
     }
     onAdjust(adjustType, value, note.trim() || undefined);
@@ -42,21 +42,21 @@ export const BudgetHeader = ({ budget, totalSpent, remaining, budgetHistory, onA
       <div className="budget-title-row">
         <span className="budget-title">✦ budget wishlist</span>
         <button className="btn-edit-budget" onClick={() => setPanelOpen((p) => !p)}>
-          {panelOpen ? '✕ închide' : '✎ ajustează buget'}
+          {panelOpen ? '✕ close' : '✎ adjust budget'}
         </button>
       </div>
 
       <div className="budget-stats-grid">
         <div className="budget-stat">
-          <span className="budget-stat-label">buget total</span>
+          <span className="budget-stat-label">total budget</span>
           <span className="budget-stat-value">{formatCurrency(budget)}</span>
         </div>
         <div className="budget-stat">
-          <span className="budget-stat-label">cheltuit</span>
+          <span className="budget-stat-label">spent</span>
           <span className="budget-stat-value">{formatCurrency(totalSpent)}</span>
         </div>
         <div className="budget-stat">
-          <span className="budget-stat-label">rămas</span>
+          <span className="budget-stat-label">remaining</span>
           <span className={`budget-stat-value ${remainingColor}`}>{formatCurrency(remaining)}</span>
         </div>
       </div>
@@ -67,26 +67,26 @@ export const BudgetHeader = ({ budget, totalSpent, remaining, budgetHistory, onA
 
       {panelOpen && (
         <div className="adjust-panel">
-          <span className="adjust-label">sumă de ajustat</span>
+          <span className="adjust-label">amount to adjust</span>
           <div className="adjust-row">
             <div className="type-toggle">
               <button
                 className={adjustType === 'add' ? 'active-add' : ''}
                 onClick={() => setAdjustType('add')}
               >
-                + adaugă
+                + add
               </button>
               <button
                 className={adjustType === 'subtract' ? 'active-sub' : ''}
                 onClick={() => setAdjustType('subtract')}
               >
-                − scoate
+                − subtract
               </button>
             </div>
             <input
               className={`adjust-input ${adjustType === 'add' ? 'input-green' : 'input-red'}`}
               type="number"
-              placeholder="ex: 500"
+              placeholder="e.g. 500"
               min="0"
               value={amount}
               onChange={(e) => { setAmount(e.target.value); setError(''); }}
@@ -94,7 +94,7 @@ export const BudgetHeader = ({ budget, totalSpent, remaining, budgetHistory, onA
             <input
               className="adjust-input"
               type="text"
-              placeholder="motiv (opțional)"
+              placeholder="reason (optional)"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               style={{ maxWidth: 140 }}
@@ -103,7 +103,7 @@ export const BudgetHeader = ({ budget, totalSpent, remaining, budgetHistory, onA
               className={`btn-confirm ${adjustType === 'add' ? 'confirm-add' : 'confirm-sub'}`}
               onClick={handleAdjust}
             >
-              aplică ↗
+              apply ↗
             </button>
           </div>
           {error && <p className="error-msg">{error}</p>}
@@ -113,7 +113,7 @@ export const BudgetHeader = ({ budget, totalSpent, remaining, budgetHistory, onA
               {[...budgetHistory].reverse().map((h, i) => (
                 <div key={i} className="history-entry">
                   <span className="history-note">
-                    {h.note || (h.type === 'add' ? 'buget adăugat' : 'buget retras')}
+                    {h.note || (h.type === 'add' ? 'budget added' : 'budget withdrawn')}
                   </span>
                   <span className={`history-amount ${h.type === 'add' ? 'history-add' : 'history-sub'}`}>
                     {h.type === 'add' ? '+' : '−'}{formatCurrency(h.amount)}

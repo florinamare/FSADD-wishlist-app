@@ -1,10 +1,10 @@
 import { type HighlightColor, type WishlistItem } from '../types';
 
 export const BD_LABELS: Record<string, string> = {
-  accommodation: 'cazare',
-  flights: 'zboruri',
-  food: 'mâncare',
-  activities: 'activități',
+  accommodation: 'accommodation',
+  flights: 'flights',
+  food: 'food',
+  activities: 'activities',
 };
 
 export const BD_ICONS: Record<string, string> = {
