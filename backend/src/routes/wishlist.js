@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const authMiddleware = require('../middleware/authMiddleware');
 const {
   getItems,
   createItem,
@@ -7,6 +8,8 @@ const {
   updateBreakdownItem,
   deleteItem,
 } = require('../controllers/wishlistController');
+
+router.use(authMiddleware);
 
 router.get('/',                        getItems);
 router.post('/',                       createItem);
