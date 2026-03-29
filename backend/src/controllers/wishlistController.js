@@ -3,7 +3,7 @@ const WishlistItem = require('../models/WishlistItem');
 // GET /api/items
 const getItems = async (req, res) => {
   try {
-    const items = await WishlistItem.find().sort({ createdAt: -1 });
+    const items = await WishlistItem.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.json(items);
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve items.' });
@@ -20,6 +20,7 @@ const createItem = async (req, res) => {
     }
 
     const item = new WishlistItem({
+      userId: req.userId,
       name,
       price,
       priority: priority || 'medium',
@@ -46,8 +47,8 @@ const updatePurchased = async (req, res) => {
       return res.status(400).json({ error: 'Field purchased must be a boolean.' });
     }
 
-    const item = await WishlistItem.findByIdAndUpdate(
-      req.params.id,
+    const item = await WishlistItem.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
       { $set: { purchased } },
       { new: true, runValidators: true }
     );
@@ -69,8 +70,8 @@ const updateBreakdownItem = async (req, res) => {
       return res.status(400).json({ error: 'Field purchased must be a boolean.' });
     }
 
-    const item = await WishlistItem.findByIdAndUpdate(
-      id,
+    const item = await WishlistItem.findOneAndUpdate(
+      { _id: id, userId: req.userId },
       { $set: { 'breakdown.$[elem].purchased': purchased } },
       {
         arrayFilters: [{ 'elem.key': key }],
@@ -89,7 +90,7 @@ const updateBreakdownItem = async (req, res) => {
 // DELETE /api/items/:id
 const deleteItem = async (req, res) => {
   try {
-    const item = await WishlistItem.findByIdAndDelete(req.params.id);
+    const item = await WishlistItem.findOneAndDelete({ _id: req.params.id, userId: req.userId });
     if (!item) return res.status(404).json({ error: 'Item not found.' });
     return res.json({ message: 'Item deleted successfully.' });
   } catch (err) {

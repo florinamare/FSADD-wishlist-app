@@ -23,6 +23,12 @@ const BreakdownItemSchema = new mongoose.Schema(
 
 const WishlistItemSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'userId is required.'],
+      index: true,
+    },
     name: {
       type: String,
       required: [true, 'Name is required.'],
