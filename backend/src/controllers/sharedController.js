@@ -58,4 +58,32 @@ const updateSharedItem = async (req, res) => {
   }
 };
 
-module.exports = { getSharedWishlist, updateSharedItem };
+// PATCH /api/shared/:shareToken/items/:id/breakdown/:key
+const updateSharedBreakdownItem = async (req, res) => {
+  try {
+    const { purchased } = req.body;
+    if (typeof purchased !== 'boolean') {
+      return res.status(400).json({ error: 'Field purchased must be a boolean.' });
+    }
+
+    const user = await User.findOne({ shareToken: req.params.shareToken }).select('_id');
+    if (!user) return res.status(404).json({ error: 'Wishlist not found.' });
+
+    const item = await WishlistItem.findOneAndUpdate(
+      { _id: req.params.id, userId: user._id },
+      { $set: { 'breakdown.$[elem].purchased': purchased } },
+      {
+        arrayFilters: [{ 'elem.key': req.params.key }],
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!item) return res.status(404).json({ error: 'Item not found.' });
+    return res.json(item);
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to update breakdown item.' });
+  }
+};
+
+module.exports = { getSharedWishlist, updateSharedItem, updateSharedBreakdownItem };

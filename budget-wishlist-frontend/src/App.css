@@ -311,6 +311,19 @@ body {
 .share-qr-hint { font-size: 12px; color: var(--color-text-muted); }
 
 /* ─── Shared Page ────────────────────────────────────────────── */
+.btn-add-friend {
+  margin-left: auto;
+  font-size: 12px; padding: 4px 12px;
+  border: 1px solid var(--color-border); border-radius: 8px;
+  background: transparent; color: var(--color-text-muted); cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.btn-add-friend:hover:not(:disabled) { background: var(--color-surface); }
+.btn-add-friend-done {
+  border-color: #639922; color: #3B6D11; cursor: default;
+}
+
 .shared-header {
   display: flex; align-items: baseline; gap: 10px;
   margin-bottom: 1.25rem;
@@ -325,6 +338,62 @@ body {
   margin-top: 10px; padding-top: 10px;
   border-top: 1px solid var(--color-border);
 }
+
+/* ─── Friends Button ─────────────────────────────────────────── */
+.btn-friends {
+  position: relative;
+  padding: 5px 10px;
+  border: 1px solid var(--color-border); border-radius: 8px;
+  background: transparent; color: var(--color-text-muted); cursor: pointer;
+  font-size: 15px; display: flex; align-items: center; transition: background 0.15s;
+}
+.btn-friends:hover { background: var(--color-surface); }
+.btn-friends-icon { line-height: 1; }
+.btn-friends-badge {
+  position: absolute; top: -5px; right: -5px;
+  min-width: 16px; height: 16px; border-radius: 99px;
+  background: #185FA5; color: #fff;
+  font-size: 10px; font-weight: 600; line-height: 16px;
+  text-align: center; padding: 0 4px;
+  pointer-events: none;
+}
+
+/* ─── Friends Panel ──────────────────────────────────────────── */
+.friends-panel {
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  border-radius: 12px; padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.friends-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.friend-row {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 8px 0;
+  border: none; border-bottom: 1px solid var(--color-border);
+  background: transparent; color: var(--color-text); cursor: pointer;
+  text-align: left; transition: background 0.12s; border-radius: 0;
+}
+.friend-row:last-child { border-bottom: none; }
+.friend-row:hover:not(:disabled) { background: var(--color-surface); }
+.friend-row:disabled { cursor: default; opacity: 0.5; }
+.friend-name { font-size: 14px; font-weight: 500; }
+.friend-meta { display: flex; align-items: center; gap: 6px; }
+.friend-badge-new {
+  font-size: 10px; padding: 2px 7px; border-radius: 99px; font-weight: 600;
+  background: #E6F1FB; color: #185FA5;
+}
+.friend-visited { font-size: 12px; color: var(--color-text-muted); }
+
+.friends-search {
+  width: 100%; padding: 7px 10px; margin-bottom: 6px;
+  border: 1px solid var(--color-border); border-radius: 8px;
+  background: var(--color-surface); color: var(--color-text);
+  font-size: 13px; outline: none;
+}
+.friends-search:focus { border-color: var(--color-border-strong); }
+.friends-search-hint { font-size: 12px; color: var(--color-text-muted); margin-bottom: 4px; }
 
 /* ─── Toast Notification ─────────────────────────────────────── */
 .toast {

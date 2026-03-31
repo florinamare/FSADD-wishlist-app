@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/authMiddleware');
-const { addFriend, getFriends } = require('../controllers/friendsController');
+const { searchUsers } = require('../controllers/usersController');
 
-router.post('/', auth, addFriend);
-router.get('/',  auth, getFriends);
+router.get('/search', auth, searchUsers);
 
 module.exports = router;

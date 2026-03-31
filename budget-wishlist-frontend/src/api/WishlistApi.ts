@@ -68,6 +68,36 @@ export const wishlistApi = {
     }).then(handleResponse),
 };
 
+export interface Friend {
+  visitorId: string;
+  visitorName: string;
+  visitedAt: string;
+  hasNewItems: boolean;
+  shareToken: string | null;
+}
+
+export const friendsApi = {
+  getFriends: (): Promise<Friend[]> =>
+    fetch(`${BASE_URL}/friends`, { headers: authHeaders() }).then(handleResponse),
+
+  addFriend: (shareToken: string): Promise<void> =>
+    fetch(`${BASE_URL}/friends`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ shareToken }),
+    }).then(handleResponse),
+};
+
+export interface UserSearchResult {
+  username: string;
+  shareToken: string;
+}
+
+export const usersApi = {
+  search: (q: string): Promise<UserSearchResult[]> =>
+    fetch(`${BASE_URL}/users/search?q=${encodeURIComponent(q)}`, { headers: authHeaders() }).then(handleResponse),
+};
+
 export interface SharedWishlist {
   username: string;
   items: WishlistItem[];
@@ -87,5 +117,17 @@ export const sharedApi = {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ purchased, boughtBy }),
+    }).then(handleResponse),
+
+  updateBreakdownItem: (
+    shareToken: string,
+    itemId: string,
+    key: string,
+    purchased: boolean
+  ): Promise<WishlistItem> =>
+    fetch(`${BASE_URL}/shared/${shareToken}/items/${itemId}/breakdown/${key}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ purchased }),
     }).then(handleResponse),
 };
