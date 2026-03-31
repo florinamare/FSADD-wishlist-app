@@ -6,6 +6,7 @@ const wishlistRoutes = require('./routes/wishlist');
 const budgetRoutes = require('./routes/budget');
 const authRoutes = require('./routes/auth');
 const sharedRoutes = require('./routes/shared');
+const friendsRoutes = require('./routes/friends');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/items', wishlistRoutes);
 app.use('/api/budget', budgetRoutes);
 app.use('/api/shared', sharedRoutes);
+app.use('/api/friends', friendsRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/health', (req, res) => {

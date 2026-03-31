@@ -1,14 +1,30 @@
 const User = require('../models/User');
 const WishlistItem = require('../models/WishlistItem');
+const Friend = require('../models/Friend');
 
 // GET /api/shared/:shareToken
+// Query param opțional: ?visitorToken=<shareToken-ul vizitatorului>
 const getSharedWishlist = async (req, res) => {
   try {
-    const user = await User.findOne({ shareToken: req.params.shareToken }).select('username');
-    if (!user) return res.status(404).json({ error: 'Wishlist not found.' });
+    const owner = await User.findOne({ shareToken: req.params.shareToken }).select('username');
+    if (!owner) return res.status(404).json({ error: 'Wishlist not found.' });
 
-    const items = await WishlistItem.find({ userId: user._id }).sort({ createdAt: -1 });
-    return res.json({ username: user.username, items });
+    const items = await WishlistItem.find({ userId: owner._id }).sort({ createdAt: -1 });
+
+    // Înregistrează vizitatorul dacă trimite propriul shareToken
+    const { visitorToken } = req.query;
+    if (visitorToken && visitorToken !== req.params.shareToken) {
+      const visitor = await User.findOne({ shareToken: visitorToken }).select('_id username');
+      if (visitor) {
+        await Friend.findOneAndUpdate(
+          { ownerId: owner._id, visitorId: visitor._id },
+          { visitorName: visitor.username, visitedAt: new Date() },
+          { upsert: true, new: true }
+        );
+      }
+    }
+
+    return res.json({ username: owner.username, items });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to retrieve shared wishlist.' });
   }
