@@ -425,3 +425,80 @@ body {
 
 .toast-icon { font-size: 15px; flex-shrink: 0; color: #854F0B; }
 .toast-message { flex: 1; line-height: 1.4; }
+
+/* ─── Bell Button ────────────────────────────────────────────── */
+.btn-bell {
+  position: relative;
+  padding: 5px 10px;
+  border: 1px solid var(--color-border); border-radius: 8px;
+  background: transparent; color: var(--color-text-muted); cursor: pointer;
+  font-size: 15px; display: flex; align-items: center; transition: background 0.15s;
+}
+.btn-bell:hover { background: var(--color-surface); }
+.btn-bell-icon { line-height: 1; }
+
+/* ─── Notifications Panel ────────────────────────────────────── */
+.notifications-panel {
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  border-radius: 12px; padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.notifications-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.btn-mark-read {
+  font-size: 12px; padding: 4px 10px;
+  border: 1px solid var(--color-border); border-radius: 8px;
+  background: transparent; color: var(--color-text-muted); cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-mark-read:hover { background: var(--color-surface); }
+
+.notifications-list { display: flex; flex-direction: column; }
+.notification-row {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 8px 0;
+  border: none; border-bottom: 1px solid var(--color-border);
+  background: transparent; color: var(--color-text); cursor: pointer;
+  text-align: left; transition: background 0.12s;
+}
+.notification-row:last-child { border-bottom: none; }
+.notification-row:hover { background: var(--color-surface); }
+.notification-row.notification-unread { background: var(--color-surface); }
+.notification-icon { font-size: 16px; flex-shrink: 0; }
+.notification-content { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.notification-message { font-size: 14px; color: var(--color-text); }
+.notification-time { font-size: 12px; color: var(--color-text-muted); }
+.notification-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #185FA5; flex-shrink: 0;
+}
+
+/* ─── Purchased Modal ────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000;
+  animation: fade-in 0.2s ease;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.modal-box {
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  border-radius: 16px; padding: 2rem 2rem 1.5rem;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  max-width: 340px; width: calc(100% - 2rem);
+  animation: slide-up 0.25s ease;
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.modal-emoji { font-size: 40px; line-height: 1; }
+.modal-title { font-size: 18px; font-weight: 600; color: var(--color-text); margin: 4px 0 0; }
+.modal-item { font-size: 15px; color: var(--color-text); font-weight: 500; text-align: center; }
+.modal-buyer { font-size: 14px; color: var(--color-text-muted); text-align: center; }

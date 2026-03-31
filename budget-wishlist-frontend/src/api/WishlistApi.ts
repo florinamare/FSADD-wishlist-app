@@ -1,4 +1,4 @@
-import type { WishlistItem, NewWishlistItem, BudgetAdjustment, AdjustType } from '../types';
+import type { WishlistItem, NewWishlistItem, BudgetAdjustment, AdjustType, Notification } from '../types';
 
 export interface BudgetState {
   amount: number;
@@ -96,6 +96,17 @@ export interface UserSearchResult {
 export const usersApi = {
   search: (q: string): Promise<UserSearchResult[]> =>
     fetch(`${BASE_URL}/users/search?q=${encodeURIComponent(q)}`, { headers: authHeaders() }).then(handleResponse),
+};
+
+export const notificationsApi = {
+  getAll: (): Promise<Notification[]> =>
+    fetch(`${BASE_URL}/notifications`, { headers: authHeaders() }).then(handleResponse),
+
+  markAllRead: (): Promise<void> =>
+    fetch(`${BASE_URL}/notifications/read-all`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+    }).then(handleResponse),
 };
 
 export interface SharedWishlist {

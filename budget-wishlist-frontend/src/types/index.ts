@@ -27,3 +27,13 @@ export interface BudgetAdjustment {
   note?: string;
   createdAt: string;
 }
+
+export interface Notification {
+  _id: string;
+  type: 'purchased' | 'visited';
+  message: string;
+  itemName: string | null;
+  boughtBy: string | null;
+  read: boolean;
+  createdAt: string;
+}
