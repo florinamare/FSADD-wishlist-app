@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth');
 const sharedRoutes = require('./routes/shared');
 const friendsRoutes = require('./routes/friends');
 const usersRoutes = require('./routes/users');
+const notificationsRoutes = require('./routes/notifications');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/budget', budgetRoutes);
 app.use('/api/shared', sharedRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/health', (req, res) => {
