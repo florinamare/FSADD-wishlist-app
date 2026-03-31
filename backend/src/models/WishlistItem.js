@@ -49,6 +49,12 @@ const WishlistItemSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    boughtBy: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: [100, 'boughtBy cannot exceed 100 characters.'],
+    },
     breakdown: {
       type: [BreakdownItemSchema],
       default: null,

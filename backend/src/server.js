@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 const wishlistRoutes = require('./routes/wishlist');
 const budgetRoutes = require('./routes/budget');
 const authRoutes = require('./routes/auth');
+const sharedRoutes = require('./routes/shared');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/items', wishlistRoutes);
 app.use('/api/budget', budgetRoutes);
+app.use('/api/shared', sharedRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/health', (req, res) => {
