@@ -42,6 +42,7 @@ export function HomePage() {
         remaining={remaining}
         budgetHistory={budgetHistory}
         onAdjust={adjustBudget}
+        shareToken={user?.shareToken}
       />
 
       <AddItemForm onAdd={addItem} />

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { AdjustType, BudgetAdjustment } from '../types';
 import { formatCurrency } from '../utils/BugetUtils';
 
@@ -8,14 +9,26 @@ interface Props {
   remaining: number;
   budgetHistory: BudgetAdjustment[];
   onAdjust: (type: AdjustType, amount: number, note?: string) => void;
+  shareToken?: string;
 }
 
-export const BudgetHeader = ({ budget, totalSpent, remaining, budgetHistory, onAdjust }: Props) => {
+export const BudgetHeader = ({ budget, totalSpent, remaining, budgetHistory, onAdjust, shareToken }: Props) => {
   const [panelOpen, setPanelOpen] = useState(false);
   const [adjustType, setAdjustType] = useState<AdjustType>('add');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
+  const [showQR, setShowQR] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const shareUrl = shareToken ? `${window.location.origin}/shared/${shareToken}` : '';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const pct = budget > 0 ? Math.min(100, Math.round((totalSpent / budget) * 100)) : 0;
   const progressColor = pct > 85 ? 'red' : pct > 60 ? 'yellow' : 'green';
@@ -64,6 +77,23 @@ export const BudgetHeader = ({ budget, totalSpent, remaining, budgetHistory, onA
       <div className="progress-wrap">
         <div className={`progress-bar ${progressColor}`} style={{ width: `${pct}%` }} />
       </div>
+
+      {shareToken && (
+        <div className="share-row">
+          <button className="btn-share-copy" onClick={handleCopy}>
+            {copied ? '✓ copied' : '⎘ copy link'}
+          </button>
+          <button className="btn-share-qr" onClick={() => setShowQR((p) => !p)}>
+            {showQR ? '✕ hide QR' : '▣ QR code'}
+          </button>
+          {showQR && (
+            <div className="share-qr-panel">
+              <QRCodeSVG value={shareUrl} size={140} />
+              <p className="share-qr-hint">scanează pentru a vedea wishlist-ul</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {panelOpen && (
         <div className="adjust-panel">

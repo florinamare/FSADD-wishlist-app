@@ -4,10 +4,12 @@ import { authApi } from '../api/authApi';
 const TOKEN_KEY = 'wl_token';
 const USERNAME_KEY = 'wl_username';
 const USER_ID_KEY = 'wl_user_id';
+const SHARE_TOKEN_KEY = 'wl_share_token';
 
 export interface User {
   username: string;
   userId: string;
+  shareToken: string;
 }
 
 interface AuthContextValue {
@@ -30,17 +32,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     const username = localStorage.getItem(USERNAME_KEY);
     const userId = localStorage.getItem(USER_ID_KEY);
-    return username && userId ? { username, userId } : null;
+    const shareToken = localStorage.getItem(SHARE_TOKEN_KEY);
+    return username && userId && shareToken ? { username, userId, shareToken } : null;
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const persist = (t: string, username: string, userId: string) => {
+  const persist = (t: string, username: string, userId: string, shareToken: string) => {
     localStorage.setItem(TOKEN_KEY, t);
     localStorage.setItem(USERNAME_KEY, username);
     localStorage.setItem(USER_ID_KEY, userId);
+    localStorage.setItem(SHARE_TOKEN_KEY, shareToken);
     setToken(t);
-    setUser({ username, userId });
+    setUser({ username, userId, shareToken });
     setError(null);
   };
 
@@ -49,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const data = await authApi.login(email, password);
-      persist(data.token, data.username, data.userId);
+      persist(data.token, data.username, data.userId, data.shareToken);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed.');
     } finally {
@@ -62,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const data = await authApi.register(username, email, password);
-      persist(data.token, data.username, data.userId);
+      persist(data.token, data.username, data.userId, data.shareToken);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
     } finally {
@@ -74,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USERNAME_KEY);
     localStorage.removeItem(USER_ID_KEY);
+    localStorage.removeItem(SHARE_TOKEN_KEY);
     setToken(null);
     setUser(null);
   };
