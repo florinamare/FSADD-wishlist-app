@@ -286,6 +286,46 @@ body {
 }
 .btn-field-add:hover, .btn-field-remove:hover { background: var(--color-surface); }
 
+/* ─── Share Row (BudgetHeader) ───────────────────────────────── */
+.share-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.btn-share-copy, .btn-share-qr {
+  font-size: 12px; padding: 4px 12px;
+  border: 1px solid var(--color-border); border-radius: 8px;
+  background: transparent; color: var(--color-text-muted); cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-share-copy:hover, .btn-share-qr:hover { background: var(--color-surface); }
+
+.share-qr-panel {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; padding: 12px; background: var(--color-surface);
+  border: 1px solid var(--color-border); border-radius: 10px;
+  width: 100%; margin-top: 4px;
+}
+.share-qr-hint { font-size: 12px; color: var(--color-text-muted); }
+
+/* ─── Shared Page ────────────────────────────────────────────── */
+.shared-header {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 1.25rem;
+}
+.shared-owner { font-size: 14px; color: var(--color-text-muted); }
+.shared-badge-buyer {
+  font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500;
+  background: #EAF3DE; color: #3B6D11;
+}
+.shared-buyer-row {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
 /* ─── Toast Notification ─────────────────────────────────────── */
 .toast {
   position: fixed;

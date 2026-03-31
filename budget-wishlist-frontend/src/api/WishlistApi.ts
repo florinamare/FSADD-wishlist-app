@@ -67,3 +67,25 @@ export const wishlistApi = {
       body: JSON.stringify({ type, amount, note }),
     }).then(handleResponse),
 };
+
+export interface SharedWishlist {
+  username: string;
+  items: WishlistItem[];
+}
+
+export const sharedApi = {
+  getWishlist: (shareToken: string): Promise<SharedWishlist> =>
+    fetch(`${BASE_URL}/shared/${shareToken}`).then(handleResponse),
+
+  updateItem: (
+    shareToken: string,
+    itemId: string,
+    purchased: boolean,
+    boughtBy?: string
+  ): Promise<WishlistItem> =>
+    fetch(`${BASE_URL}/shared/${shareToken}/items/${itemId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ purchased, boughtBy }),
+    }).then(handleResponse),
+};

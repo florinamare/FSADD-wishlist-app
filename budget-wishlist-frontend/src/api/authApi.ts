@@ -4,6 +4,7 @@ export interface AuthResponse {
   token: string;
   userId: string;
   username: string;
+  shareToken: string;
 }
 
 const handleResponse = async (res: Response) => {

@@ -15,6 +15,7 @@ export interface WishlistItem {
   priority: Priority;
   purchased: boolean;
   breakdown: BreakdownItem[] | null;
+  boughtBy?: string | null;
   createdAt: string;
 }
 

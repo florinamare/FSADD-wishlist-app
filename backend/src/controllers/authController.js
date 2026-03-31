@@ -28,7 +28,7 @@ const register = async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    return res.status(201).json({ token, userId: user._id, username: user.username });
+    return res.status(201).json({ token, userId: user._id, username: user.username, shareToken: user.shareToken });
   } catch (err) {
     if (err.name === 'ValidationError') {
       return res.status(400).json({ error: err.message });
@@ -62,7 +62,7 @@ const login = async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    return res.json({ token, userId: user._id, username: user.username });
+    return res.json({ token, userId: user._id, username: user.username, shareToken: user.shareToken });
   } catch (err) {
     return res.status(500).json({ error: 'Login failed.' });
   }
