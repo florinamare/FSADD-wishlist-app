@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BudgetHeader } from '../components/BudgetHeader';
 import { AddItemForm } from '../components/AddItemForm';
 import { WishlistItem } from '../components/WishlistItem';
@@ -13,6 +14,7 @@ import type { Notification } from '../types';
 
 export function HomePage() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [showFriends, setShowFriends] = useState(false);
   const [friendCount, setFriendCount] = useState(0);
 
@@ -82,9 +84,13 @@ export function HomePage() {
       )}
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '0.75rem', gap: '8px' }}>
-        <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-          {user?.username}
-        </span>
+        <button
+          className="btn-profile"
+          onClick={() => navigate('/profile')}
+          title="Profile"
+        >
+          {user?.username?.slice(0, 2).toUpperCase()}
+        </button>
         <button
           className="btn-bell"
           onClick={() => setShowNotifications((p) => !p)}

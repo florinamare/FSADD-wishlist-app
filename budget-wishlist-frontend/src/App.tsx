@@ -5,6 +5,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SharedPage } from './pages/SharedPage';
 import { HomePage } from './pages/HomePage';
+import { ProfilePage } from './pages/ProfilePage';
 import './App.css';
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/shared/:shareToken" element={<SharedPage />} />
           <Route element={<PrivateRoute />}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
