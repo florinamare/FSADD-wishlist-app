@@ -11,6 +11,11 @@ const BudgetAdjustmentSchema = new mongoose.Schema(
 );
 
 const BudgetSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    index: true,
+  },
   amount: { type: Number, default: 5000, min: 0 },
   history: { type: [BudgetAdjustmentSchema], default: [] },
 });

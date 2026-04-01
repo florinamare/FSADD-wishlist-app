@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BudgetHeader } from '../components/BudgetHeader';
 import { AddItemForm } from '../components/AddItemForm';
@@ -22,10 +22,34 @@ export function HomePage() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [purchasedModal, setPurchasedModal] = useState<Notification | null>(null);
 
+  // Track which notifications we've already handled to auto-trigger confetti
+  // only for genuinely new ones arriving after the page loads.
+  const handledNotifIds = useRef<Set<string>>(new Set());
+  const initialLoadDone = useRef(false);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const fetchNotifications = () => {
-    notificationsApi.getAll().then(setNotifications).catch(() => {});
+    notificationsApi.getAll().then((fresh) => {
+      setNotifications(fresh);
+
+      if (!initialLoadDone.current) {
+        // First load — record all existing IDs so we don't re-trigger them.
+        fresh.forEach((n) => handledNotifIds.current.add(n._id));
+        initialLoadDone.current = true;
+        return;
+      }
+
+      // Subsequent polls: auto-show modal for brand-new purchased notifications.
+      for (const n of fresh) {
+        if (n.type === 'purchased' && !handledNotifIds.current.has(n._id)) {
+          handledNotifIds.current.add(n._id);
+          setPurchasedModal(n);
+          setShowNotifications(false);
+          break; // one at a time
+        }
+      }
+    }).catch(() => {});
   };
 
   useEffect(() => {
@@ -36,6 +60,7 @@ export function HomePage() {
     fetchNotifications();
     const id = setInterval(fetchNotifications, 30_000);
     return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleMarkAllRead = () => {
@@ -83,11 +108,11 @@ export function HomePage() {
         />
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '0.75rem', gap: '8px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '0.875rem', gap: '8px' }}>
         <button
           className="btn-profile"
           onClick={() => navigate('/profile')}
-          title="Profile"
+          title="Profil"
         >
           {user?.username?.slice(0, 2).toUpperCase()}
         </button>
@@ -143,9 +168,9 @@ export function HomePage() {
       <section>
         <span className="section-label">wishes</span>
 
-        {isLoading && <p className="state-msg">loading...</p>}
+        {isLoading && <p className="state-msg">se încarcă...</p>}
         {!isLoading && items.length === 0 && (
-          <p className="state-msg">no wishes added yet</p>
+          <p className="state-msg">nicio dorință adăugată încă</p>
         )}
 
         {items.map((item) => (

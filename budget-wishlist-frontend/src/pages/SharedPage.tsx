@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { sharedApi, friendsApi } from '../api/WishlistApi';
 import { useAuth } from '../context/AuthContext';
 import { WishlistItem } from '../types';
@@ -8,6 +8,7 @@ import { formatCurrency, getItemPurchasedState, getItemSpent, getFieldIcon, getF
 export function SharedPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
   const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
   const [items, setItems] = useState<WishlistItem[]>([]);
@@ -30,7 +31,7 @@ export function SharedPage() {
 
   useEffect(() => {
     if (!shareToken) return;
-    sharedApi.getWishlist(shareToken)
+    sharedApi.getWishlist(shareToken, user?.shareToken)
       .then((data) => {
         setUsername(data.username);
         setItems(data.items);
@@ -113,6 +114,14 @@ export function SharedPage() {
 
   return (
     <main className="app">
+      {isAuthenticated && (
+        <div className="page-nav">
+          <button className="btn-back" onClick={() => navigate('/')}>
+            ← wishlist-ul meu
+          </button>
+        </div>
+      )}
+
       <div className="shared-header">
         <span className="budget-title">✦ wishlist</span>
         <span className="shared-owner">al lui {username}</span>

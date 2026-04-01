@@ -1,9 +1,9 @@
 const Budget = require('../models/Budget');
 
-const getOrCreate = async () => {
-  let budget = await Budget.findOne();
+const getOrCreate = async (userId) => {
+  let budget = await Budget.findOne({ userId });
   if (!budget) {
-    budget = await Budget.create({ amount: 5000, history: [] });
+    budget = await Budget.create({ userId, amount: 5000, history: [] });
   }
   return budget;
 };
@@ -11,7 +11,7 @@ const getOrCreate = async () => {
 // GET /api/budget
 const getBudget = async (req, res) => {
   try {
-    const budget = await getOrCreate();
+    const budget = await getOrCreate(req.userId);
     res.json({ amount: budget.amount, history: budget.history });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve budget.' });
@@ -30,7 +30,7 @@ const adjustBudget = async (req, res) => {
       return res.status(400).json({ error: 'Amount must be a positive number.' });
     }
 
-    const budget = await getOrCreate();
+    const budget = await getOrCreate(req.userId);
 
     if (type === 'subtract' && amount > budget.amount) {
       return res.status(400).json({ error: 'Cannot subtract more than the total budget.' });
@@ -47,4 +47,4 @@ const adjustBudget = async (req, res) => {
   }
 };
 
-module.exports = { getBudget, adjustBudget };
+module.exports = { getBudget, adjustBudget, getOrCreate };

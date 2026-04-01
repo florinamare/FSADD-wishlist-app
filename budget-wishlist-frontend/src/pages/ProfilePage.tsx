@@ -174,9 +174,9 @@ export function ProfilePage() {
 
   return (
     <main className="app">
-      <div className="profile-nav">
-        <button className="btn-edit-budget" onClick={() => navigate('/')}>
-          ← Back
+      <div className="page-nav">
+        <button className="btn-back" onClick={() => navigate('/')}>
+          ← înapoi
         </button>
       </div>
 

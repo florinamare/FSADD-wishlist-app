@@ -135,8 +135,13 @@ export interface SharedWishlist {
 }
 
 export const sharedApi = {
-  getWishlist: (shareToken: string): Promise<SharedWishlist> =>
-    fetch(`${BASE_URL}/shared/${shareToken}`).then(handleResponse),
+  // visitorToken = shareToken-ul vizitatorului (pentru notificări de tip visited)
+  getWishlist: async (shareToken: string, visitorToken?: string): Promise<SharedWishlist> => {
+    const url = visitorToken
+      ? `${BASE_URL}/shared/${shareToken}?visitorToken=${encodeURIComponent(visitorToken)}`
+      : `${BASE_URL}/shared/${shareToken}`;
+    return fetch(url).then(handleResponse);
+  },
 
   updateItem: (
     shareToken: string,
@@ -146,7 +151,8 @@ export const sharedApi = {
   ): Promise<WishlistItem> =>
     fetch(`${BASE_URL}/shared/${shareToken}/items/${itemId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      // Auth headers opționale: dacă e logat, backend-ul îi scade din buget
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ purchased, boughtBy }),
     }).then(handleResponse),
 
@@ -158,7 +164,7 @@ export const sharedApi = {
   ): Promise<WishlistItem> =>
     fetch(`${BASE_URL}/shared/${shareToken}/items/${itemId}/breakdown/${key}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ purchased }),
     }).then(handleResponse),
 };
