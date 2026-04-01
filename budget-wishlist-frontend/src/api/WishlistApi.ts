@@ -160,11 +160,12 @@ export const sharedApi = {
     shareToken: string,
     itemId: string,
     key: string,
-    purchased: boolean
+    purchased: boolean,
+    boughtBy?: string
   ): Promise<WishlistItem> =>
     fetch(`${BASE_URL}/shared/${shareToken}/items/${itemId}/breakdown/${key}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify({ purchased }),
+      body: JSON.stringify({ purchased, boughtBy }),
     }).then(handleResponse),
 };

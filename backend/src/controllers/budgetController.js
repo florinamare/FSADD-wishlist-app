@@ -32,10 +32,6 @@ const adjustBudget = async (req, res) => {
 
     const budget = await getOrCreate(req.userId);
 
-    if (type === 'subtract' && amount > budget.amount) {
-      return res.status(400).json({ error: 'Cannot subtract more than the total budget.' });
-    }
-
     const delta = type === 'add' ? amount : -amount;
     budget.amount += delta;
     budget.history.push({ type, amount, note: note || '', createdAt: new Date() });

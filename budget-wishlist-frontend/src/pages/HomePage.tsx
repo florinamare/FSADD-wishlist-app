@@ -118,7 +118,15 @@ export function HomePage() {
         </button>
         <button
           className="btn-bell"
-          onClick={() => setShowNotifications((p) => !p)}
+          onClick={() => {
+            const willOpen = !showNotifications;
+            setShowNotifications(willOpen);
+            if (willOpen && notifications.some((n) => !n.read)) {
+              notificationsApi.markAllRead()
+                .then(() => setNotifications((prev) => prev.map((n) => ({ ...n, read: true }))))
+                .catch(() => {});
+            }
+          }}
           title="Notificări"
         >
           <span className="btn-bell-icon">🔔</span>
