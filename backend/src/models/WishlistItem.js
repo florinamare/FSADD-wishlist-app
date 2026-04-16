@@ -29,6 +29,12 @@ const WishlistItemSchema = new mongoose.Schema(
       required: [true, 'userId is required.'],
       index: true,
     },
+    wishlistId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Wishlist',
+      index: true,
+      default: null,
+    },
     name: {
       type: String,
       required: [true, 'Name is required.'],
@@ -54,6 +60,10 @@ const WishlistItemSchema = new mongoose.Schema(
       default: null,
       trim: true,
       maxlength: [100, 'boughtBy cannot exceed 100 characters.'],
+    },
+    imageUrl: {
+      type: String,
+      default: null,
     },
     breakdown: {
       type: [BreakdownItemSchema],

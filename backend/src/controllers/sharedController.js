@@ -3,16 +3,43 @@ const WishlistItem = require('../models/WishlistItem');
 const Friend = require('../models/Friend');
 const Notification = require('../models/Notification');
 
-// GET /api/shared/:shareToken
-// Query param opțional: ?visitorToken=<shareToken-ul vizitatorului>
+const emitNotification = (userId, notification) => {
+  try {
+    const { getIO } = require('../config/socket');
+    getIO().to(`user:${userId}`).emit('notification:new', notification);
+  } catch (_) {
+    // Socket not initialized (e.g. during tests)
+  }
+};
+
+/**
+ * @swagger
+ * /shared/{shareToken}:
+ *   get:
+ *     summary: Get a user's shared wishlist by their shareToken
+ *     tags: [Shared]
+ *     parameters:
+ *       - in: path
+ *         name: shareToken
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: visitorToken
+ *         schema: { type: string }
+ *         description: Visitor's own shareToken to register the visit
+ *     responses:
+ *       200:
+ *         description: Shared wishlist data
+ *       404:
+ *         description: Wishlist not found
+ */
 const getSharedWishlist = async (req, res) => {
   try {
-    const owner = await User.findOne({ shareToken: req.params.shareToken }).select('username');
+    const owner = await User.findOne({ shareToken: req.params.shareToken }).select('username _id');
     if (!owner) return res.status(404).json({ error: 'Wishlist not found.' });
 
     const items = await WishlistItem.find({ userId: owner._id }).sort({ createdAt: -1 });
 
-    // Înregistrează vizitatorul dacă trimite propriul shareToken
     const { visitorToken } = req.query;
     if (visitorToken && visitorToken !== req.params.shareToken) {
       const visitor = await User.findOne({ shareToken: visitorToken }).select('_id username');
@@ -22,11 +49,14 @@ const getSharedWishlist = async (req, res) => {
           { visitorName: visitor.username, visitedAt: new Date() },
           { upsert: true, new: true }
         );
-        await Notification.create({
+
+        const notification = await Notification.create({
           userId: owner._id,
           type: 'visited',
           message: `${visitor.username} ți-a vizitat wishlist-ul.`,
         });
+
+        emitNotification(owner._id, notification);
       }
     }
 
@@ -36,7 +66,35 @@ const getSharedWishlist = async (req, res) => {
   }
 };
 
-// PATCH /api/shared/:shareToken/items/:id
+/**
+ * @swagger
+ * /shared/{shareToken}/items/{id}:
+ *   patch:
+ *     summary: Mark a shared item as purchased
+ *     tags: [Shared]
+ *     parameters:
+ *       - in: path
+ *         name: shareToken
+ *         required: true
+ *         schema: { type: string }
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [purchased]
+ *             properties:
+ *               purchased: { type: boolean }
+ *               boughtBy: { type: string }
+ *     responses:
+ *       200:
+ *         description: Updated item
+ */
 const updateSharedItem = async (req, res) => {
   try {
     const { purchased, boughtBy } = req.body;
@@ -61,13 +119,15 @@ const updateSharedItem = async (req, res) => {
 
     if (purchased) {
       const buyer = update.boughtBy || 'Cineva';
-      await Notification.create({
+      const notification = await Notification.create({
         userId: user._id,
         type: 'purchased',
         message: `${buyer} a bifat "${item.name}" ca cumpărat.`,
         itemName: item.name,
         boughtBy: update.boughtBy || null,
       });
+
+      emitNotification(user._id, { type: 'item:purchased', notification });
     }
 
     return res.json(item);
