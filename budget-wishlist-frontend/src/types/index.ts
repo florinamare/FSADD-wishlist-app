@@ -16,6 +16,7 @@ export interface WishlistItem {
   purchased: boolean;
   breakdown: BreakdownItem[] | null;
   boughtBy?: string | null;
+  imageUrl?: string | null;
   createdAt: string;
 }
 
@@ -36,4 +37,43 @@ export interface Notification {
   boughtBy: string | null;
   read: boolean;
   createdAt: string;
+}
+
+export interface PaginatedResponse<T> {
+  items?: T[];
+  notifications?: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface Wishlist {
+  _id: string;
+  name: string;
+  description?: string;
+  isDefault: boolean;
+  shareToken?: string;
+  createdAt: string;
+}
+
+export interface StatsData {
+  summary: {
+    totalItems: number;
+    purchasedItems: number;
+    pendingItems: number;
+    activeFriends: number;
+    unreadNotifications: number;
+  };
+  itemsByPriority: Array<{
+    _id: string;
+    count: number;
+    totalValue: number;
+    purchasedCount: number;
+  }>;
+  spentPerMonth: Array<{
+    _id: { year: number; month: number };
+    totalSpent: number;
+    count: number;
+  }>;
 }

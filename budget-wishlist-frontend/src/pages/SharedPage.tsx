@@ -39,6 +39,18 @@ export function SharedPage() {
       .finally(() => setIsLoading(false));
   }, [shareToken]);
 
+  // Check if this person is already in the friend list
+  useEffect(() => {
+    if (!isAuthenticated || isOwnWishlist || !shareToken) return;
+    friendsApi.getFriends()
+      .then((friends) => {
+        if (friends.some((f) => f.shareToken === shareToken)) {
+          setFriendAdded(true);
+        }
+      })
+      .catch(() => {});
+  }, [isAuthenticated, isOwnWishlist, shareToken]);
+
   const handleAddFriend = async () => {
     if (!shareToken || friendPending) return;
     setFriendPending(true);

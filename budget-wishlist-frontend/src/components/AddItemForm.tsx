@@ -3,7 +3,8 @@ import { NewWishlistItem, Priority, BreakdownItem } from '../types';
 import { CATEGORY_TEMPLATES, CategoryType } from '../utils/BugetUtils';
 
 interface Props {
-  onAdd: (item: NewWishlistItem) => Promise<void>;
+  wishlistId?: string;
+  onAdd: (item: NewWishlistItem & { wishlistId?: string }) => Promise<void>;
 }
 
 interface CustomField {
@@ -12,7 +13,7 @@ interface CustomField {
   amount: string;
 }
 
-export const AddItemForm = ({ onAdd }: Props) => {
+export const AddItemForm = ({ wishlistId, onAdd }: Props) => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [priority, setPriority] = useState<Priority>('medium');
@@ -68,7 +69,7 @@ export const AddItemForm = ({ onAdd }: Props) => {
 
     try {
       setLoading(true);
-      await onAdd({ name: name.trim(), price: effectivePrice, priority, breakdown: parsedBreakdown });
+      await onAdd({ name: name.trim(), price: effectivePrice, priority, breakdown: parsedBreakdown, wishlistId });
       setName('');
       setPrice('');
       setPriority('medium');
@@ -90,6 +91,7 @@ export const AddItemForm = ({ onAdd }: Props) => {
             placeholder="e.g. Tokyo Vacation"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           />
         </div>
         <div className="field" style={{ maxWidth: 110 }}>

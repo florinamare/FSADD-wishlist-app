@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { WishlistItem as IWishlistItem } from '../types';
 import { formatCurrency, getItemHighlight, getItemPurchasedState, getItemSpent } from '../utils/BugetUtils';
 import { ItemBreakdown } from './ItemBreakdown';
+import { wishlistApi } from '../api/WishlistApi';
+
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace('/api', '')
+  : 'http://localhost:3000';
 
 interface Props {
   item: IWishlistItem;
@@ -9,6 +14,7 @@ interface Props {
   onToggle: (id: string) => void;
   onToggleBreakdown: (itemId: string, key: string) => void;
   onDelete: (id: string) => void;
+  onImageUploaded: (id: string, imageUrl: string) => void;
 }
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -17,13 +23,36 @@ const PRIORITY_LABEL: Record<string, string> = {
   low: 'low',
 };
 
-export const WishlistItem = ({ item, remainingBudget, onToggle, onToggleBreakdown, onDelete }: Props) => {
+export const WishlistItem = ({ item, remainingBudget, onToggle, onToggleBreakdown, onDelete, onImageUploaded }: Props) => {
   const [showBreakdown, setShowBreakdown] = useState(!!item.breakdown);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const state = getItemPurchasedState(item);
   const highlight = getItemHighlight(item, remainingBudget);
   const spent = getItemSpent(item);
   const remaining = item.price - spent;
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const updated = await wishlistApi.uploadImage(item._id, file);
+      if (updated.imageUrl) onImageUploaded(item._id, updated.imageUrl);
+    } catch {
+      // ignore
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const imageUrl = item.imageUrl
+    ? item.imageUrl.startsWith('http')
+      ? item.imageUrl
+      : `${BASE_URL}${item.imageUrl}`
+    : null;
 
   return (
     <div className={`item-card highlight-${highlight} ${state === 'full' ? 'fully-done' : ''}`}>
@@ -76,10 +105,34 @@ export const WishlistItem = ({ item, remainingBudget, onToggle, onToggleBreakdow
           )}
         </div>
 
+        {/* Image upload button */}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          id={`img-${item._id}`}
+          onChange={handleImageUpload}
+        />
+        <label
+          htmlFor={`img-${item._id}`}
+          className="btn-img-upload"
+          title={uploading ? 'uploading...' : 'Upload image'}
+          style={{ opacity: uploading ? 0.5 : 1, cursor: uploading ? 'not-allowed' : 'pointer' }}
+        >
+          {imageUrl ? '🖼' : '📷'}
+        </label>
+
         <button className="btn-delete" onClick={() => onDelete(item._id)} aria-label="Delete">
           ✕
         </button>
       </div>
+
+      {imageUrl && (
+        <div className="item-image-wrap">
+          <img src={imageUrl} alt={item.name} className="item-image" />
+        </div>
+      )}
 
       {item.breakdown && showBreakdown && (
         <ItemBreakdown

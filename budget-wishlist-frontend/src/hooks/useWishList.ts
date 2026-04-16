@@ -4,35 +4,40 @@ import type { WishlistItem, NewWishlistItem, BudgetAdjustment, AdjustType } from
 import { getTotalSpent, formatCurrency } from '../utils/BugetUtils';
 
 const DEFAULT_BUDGET = 5000;
+const PAGE_SIZE = 10;
 
-export const useWishlist = () => {
+export const useWishlist = (wishlistId?: string) => {
   const [items, setItems] = useState<WishlistItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [budget, setBudget] = useState(DEFAULT_BUDGET);
   const [budgetHistory, setBudgetHistory] = useState<BudgetAdjustment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fix #3: track in-flight item IDs to prevent double-clicks
   const pending = useRef(new Set<string>());
 
-  // Fix #2: auto-clear error after 4 seconds
   useEffect(() => {
     if (!error) return;
     const timer = setTimeout(() => setError(null), 4000);
     return () => clearTimeout(timer);
   }, [error]);
 
-  const fetchItems = useCallback(async () => {
+  const fetchItems = useCallback(async (p: number) => {
     try {
       setIsLoading(true);
-      const data = await wishlistApi.getItems();
-      setItems(data);
+      const data = await wishlistApi.getItems(p, PAGE_SIZE, wishlistId);
+      setItems(data.items);
+      setPage(data.page);
+      setTotalPages(data.totalPages);
+      setTotal(data.total);
     } catch {
       setError('Failed to load items.');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [wishlistId]);
 
   const fetchBudget = useCallback(async () => {
     try {
@@ -40,26 +45,32 @@ export const useWishlist = () => {
       setBudget(data.amount);
       setBudgetHistory(data.history);
     } catch {
-      // fallback to default if budget fetch fails
+      // fallback to default
     }
   }, []);
 
   useEffect(() => {
-    fetchItems();
+    setPage(1);
+    fetchItems(1);
     fetchBudget();
   }, [fetchItems, fetchBudget]);
 
-  const addItem = async (item: NewWishlistItem) => {
+  const goToPage = (p: number) => {
+    if (p < 1 || p > totalPages) return;
+    fetchItems(p);
+  };
+
+  const addItem = async (item: NewWishlistItem & { wishlistId?: string }) => {
     try {
-      const newItem = await wishlistApi.addItem(item);
-      setItems((prev) => [...prev, newItem]);
+      await wishlistApi.addItem(item);
+      // Refresh current page to reflect new item
+      fetchItems(page);
     } catch {
       setError('Failed to add item.');
     }
   };
 
   const togglePurchased = async (id: string) => {
-    // Fix #3: block if already in flight
     if (pending.current.has(id)) return;
     pending.current.add(id);
 
@@ -101,7 +112,6 @@ export const useWishlist = () => {
 
   const toggleBreakdownItem = async (itemId: string, key: string) => {
     const lockKey = `${itemId}:${key}`;
-    // Fix #3: block if already in flight
     if (pending.current.has(lockKey)) return;
     pending.current.add(lockKey);
 
@@ -126,7 +136,6 @@ export const useWishlist = () => {
       );
       const allDone = newBreakdown.every((b) => b.purchased);
 
-      // Fix #1: sync parent purchased state when all breakdown items change
       if (allDone !== item.purchased) {
         const updated = await wishlistApi.togglePurchased(itemId, allDone);
         setItems((prev) => prev.map((i) => (i._id === itemId ? updated : i)));
@@ -144,9 +153,18 @@ export const useWishlist = () => {
     try {
       await wishlistApi.deleteItem(id);
       setItems((prev) => prev.filter((i) => i._id !== id));
+      setTotal((prev) => prev - 1);
+      // If we deleted the last item on this page, go to previous
+      if (items.length === 1 && page > 1) {
+        fetchItems(page - 1);
+      }
     } catch {
       setError('Failed to delete item.');
     }
+  };
+
+  const updateItemImage = (id: string, imageUrl: string) => {
+    setItems((prev) => prev.map((i) => (i._id === id ? { ...i, imageUrl } : i)));
   };
 
   const adjustBudget = async (type: AdjustType, amount: number, note?: string) => {
@@ -167,6 +185,9 @@ export const useWishlist = () => {
 
   return {
     items,
+    page,
+    totalPages,
+    total,
     budget,
     budgetHistory,
     totalSpent,
@@ -177,6 +198,8 @@ export const useWishlist = () => {
     togglePurchased,
     toggleBreakdownItem,
     deleteItem,
+    updateItemImage,
     adjustBudget,
+    goToPage,
   };
 };

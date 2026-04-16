@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BudgetHeader } from '../components/BudgetHeader';
 import { AddItemForm } from '../components/AddItemForm';
 import { WishlistItem } from '../components/WishlistItem';
@@ -6,25 +7,43 @@ import { Toast } from '../components/Toast';
 import { FriendsPanel } from '../components/FriendsPanel';
 import { NotificationsPanel } from '../components/NotificationsPanel';
 import { PurchasedModal } from '../components/PurchasedModal';
-import { useWishlist } from '../hooks/useWishlist';
+import { WishlistsBar } from '../components/WishlistsBar';
+import { SkeletonItem } from '../components/SkeletonItem';
+import { useWishlist } from '../hooks/useWishList';
+import { useSocket } from '../hooks/useSocket';
 import { useAuth } from '../context/AuthContext';
+import { useDarkMode } from '../context/DarkModeContext';
 import { friendsApi, notificationsApi } from '../api/WishlistApi';
 import type { Notification } from '../types';
 
 export function HomePage() {
   const { user, logout } = useAuth();
+  const { darkMode, toggleDarkMode } = useDarkMode();
+  const navigate = useNavigate();
+
   const [showFriends, setShowFriends] = useState(false);
   const [friendCount, setFriendCount] = useState(0);
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifPage, setNotifPage] = useState(1);
+  const [notifTotalPages, setNotifTotalPages] = useState(1);
   const [showNotifications, setShowNotifications] = useState(false);
   const [purchasedModal, setPurchasedModal] = useState<Notification | null>(null);
 
+  const [activeWishlistId, setActiveWishlistId] = useState<string | undefined>(undefined);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const fetchNotifications = () => {
-    notificationsApi.getAll().then(setNotifications).catch(() => {});
-  };
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const data = await notificationsApi.getAll(1);
+      setNotifications(data.notifications);
+      setNotifPage(data.page);
+      setNotifTotalPages(data.totalPages);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     friendsApi.getFriends().then((f) => setFriendCount(f.length)).catch(() => {});
@@ -34,7 +53,17 @@ export function HomePage() {
     fetchNotifications();
     const id = setInterval(fetchNotifications, 30_000);
     return () => clearInterval(id);
-  }, []);
+  }, [fetchNotifications]);
+
+  useSocket({
+    userId: user?.userId ?? null,
+    onNotification: (n) => {
+      setNotifications((prev) => {
+        if (prev.some((x) => x._id === n._id)) return prev;
+        return [n, ...prev];
+      });
+    },
+  });
 
   const handleMarkAllRead = () => {
     notificationsApi.markAllRead().then(() => {
@@ -56,6 +85,9 @@ export function HomePage() {
 
   const {
     items,
+    page,
+    totalPages,
+    total,
     budget,
     budgetHistory,
     totalSpent,
@@ -66,8 +98,10 @@ export function HomePage() {
     togglePurchased,
     toggleBreakdownItem,
     deleteItem,
+    updateItemImage,
     adjustBudget,
-  } = useWishlist();
+    goToPage,
+  } = useWishlist(activeWishlistId);
 
   return (
     <main className="app">
@@ -81,41 +115,55 @@ export function HomePage() {
         />
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '0.75rem', gap: '8px' }}>
-        <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-          {user?.username}
-        </span>
-        <button
-          className="btn-bell"
-          onClick={() => setShowNotifications((p) => !p)}
-          title="Notificări"
-        >
-          <span className="btn-bell-icon">🔔</span>
-          {unreadCount > 0 && (
-            <span className="btn-friends-badge">{unreadCount}</span>
-          )}
-        </button>
-        <button
-          className="btn-friends"
-          onClick={() => setShowFriends((p) => !p)}
-          title="Prieteni"
-        >
-          <span className="btn-friends-icon">♟</span>
-          {friendCount > 0 && (
-            <span className="btn-friends-badge">{friendCount}</span>
-          )}
-        </button>
-        <button className="btn-edit-budget" onClick={logout}>
-          Sign out
-        </button>
+      {/* Top bar */}
+      <div className="top-bar">
+        <span className="top-bar-username">{user?.username}</span>
+        <div className="top-bar-actions">
+          <button
+            className="btn-bell"
+            onClick={() => setShowNotifications((p) => !p)}
+            title="Notificări"
+          >
+            <span className="btn-bell-icon">🔔</span>
+            {unreadCount > 0 && (
+              <span className="btn-friends-badge">{unreadCount}</span>
+            )}
+          </button>
+          <button
+            className="btn-friends"
+            onClick={() => setShowFriends((p) => !p)}
+            title="Prieteni"
+          >
+            <span className="btn-friends-icon">♟</span>
+            {friendCount > 0 && (
+              <span className="btn-friends-badge">{friendCount}</span>
+            )}
+          </button>
+          <button className="btn-edit-budget" onClick={() => navigate('/stats')} title="Statistici">
+            📊
+          </button>
+          <button className="btn-edit-budget" onClick={() => navigate('/profile')} title="Profil">
+            👤
+          </button>
+          <button className="btn-edit-budget" onClick={toggleDarkMode} title="Comută tema">
+            {darkMode ? '☀️' : '🌙'}
+          </button>
+          <button className="btn-edit-budget" onClick={logout}>
+            sign out
+          </button>
+        </div>
       </div>
 
       {showNotifications && (
         <NotificationsPanel
           notifications={notifications}
+          page={notifPage}
+          totalPages={notifTotalPages}
           onClose={() => setShowNotifications(false)}
           onMarkAllRead={handleMarkAllRead}
           onNotificationClick={handleNotificationClick}
+          onPageChange={setNotifPage}
+          onAppendNotifications={(more) => setNotifications((prev) => [...prev, ...more])}
         />
       )}
 
@@ -132,17 +180,31 @@ export function HomePage() {
         shareToken={user?.shareToken}
       />
 
-      <AddItemForm onAdd={addItem} />
+      <WishlistsBar activeId={activeWishlistId} onChange={setActiveWishlistId} />
+
+      <AddItemForm wishlistId={activeWishlistId} onAdd={addItem} />
 
       <section>
-        <span className="section-label">wishes</span>
+        <div className="section-header">
+          <span className="section-label">wishes</span>
+          {total > 0 && (
+            <span className="section-count">{total} item{total !== 1 ? 's' : ''}</span>
+          )}
+        </div>
 
-        {isLoading && <p className="state-msg">loading...</p>}
+        {isLoading && (
+          <>
+            <SkeletonItem />
+            <SkeletonItem />
+            <SkeletonItem />
+          </>
+        )}
+
         {!isLoading && items.length === 0 && (
           <p className="state-msg">no wishes added yet</p>
         )}
 
-        {items.map((item) => (
+        {!isLoading && items.map((item) => (
           <WishlistItem
             key={item._id}
             item={item}
@@ -150,8 +212,29 @@ export function HomePage() {
             onToggle={togglePurchased}
             onToggleBreakdown={toggleBreakdownItem}
             onDelete={deleteItem}
+            onImageUploaded={updateItemImage}
           />
         ))}
+
+        {totalPages > 1 && !isLoading && (
+          <div className="pagination">
+            <button
+              className="btn-page"
+              onClick={() => goToPage(page - 1)}
+              disabled={page <= 1}
+            >
+              ← prev
+            </button>
+            <span className="page-info">{page} / {totalPages}</span>
+            <button
+              className="btn-page"
+              onClick={() => goToPage(page + 1)}
+              disabled={page >= totalPages}
+            >
+              next →
+            </button>
+          </div>
+        )}
       </section>
     </main>
   );
