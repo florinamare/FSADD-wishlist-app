@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { sharedApi, friendsApi } from '../api/WishlistApi';
 import { useAuth } from '../context/AuthContext';
 import { WishlistItem } from '../types';
@@ -8,6 +8,7 @@ import { formatCurrency, getItemPurchasedState, getItemSpent, getFieldIcon, getF
 export function SharedPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
   const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
   const [items, setItems] = useState<WishlistItem[]>([]);
@@ -21,6 +22,8 @@ export function SharedPage() {
 
   // breakdown buy state
   const [pendingBreakdown, setPendingBreakdown] = useState<string | null>(null); // "itemId:key"
+  const [showBdBuyerInput, setShowBdBuyerInput] = useState<string | null>(null); // "itemId:key"
+  const [bdBuyerName, setBdBuyerName] = useState<Record<string, string>>({});
 
   // add friend state
   const [friendAdded, setFriendAdded] = useState(false);
@@ -30,13 +33,25 @@ export function SharedPage() {
 
   useEffect(() => {
     if (!shareToken) return;
-    sharedApi.getWishlist(shareToken)
+
+    sharedApi.getWishlist(shareToken, user?.shareToken)
       .then((data) => {
         setUsername(data.username);
         setItems(data.items);
       })
       .catch(() => setError('Wishlist-ul nu a fost găsit.'))
       .finally(() => setIsLoading(false));
+
+    // Verifică dacă proprietarul e deja în lista mea de prieteni
+    if (isAuthenticated && user?.shareToken !== shareToken) {
+      friendsApi.getFriends()
+        .then((friends) => {
+          if (friends.some((f) => f.shareToken === shareToken)) {
+            setFriendAdded(true);
+          }
+        })
+        .catch(() => {});
+    }
   }, [shareToken]);
 
   // Check if this person is already in the friend list
@@ -97,21 +112,36 @@ export function SharedPage() {
     }
   };
 
-  const handleToggleBreakdown = async (item: WishlistItem, key: string) => {
+  const handleToggleBreakdown = (item: WishlistItem, key: string) => {
     if (!shareToken) return;
     const bdKey = `${item._id}:${key}`;
     if (pendingBreakdown === bdKey) return;
     const bd = item.breakdown?.find((b) => b.key === key);
     if (!bd) return;
 
+    if (!bd.purchased) {
+      // Arată input-ul pentru nume înainte de a confirma cumpărarea
+      setShowBdBuyerInput(bdKey);
+      return;
+    }
+
+    // Dacă e deja bifat, anulează imediat (fără input)
+    confirmToggleBreakdown(item, key, false);
+  };
+
+  const confirmToggleBreakdown = async (item: WishlistItem, key: string, purchased: boolean, name?: string) => {
+    if (!shareToken) return;
+    const bdKey = `${item._id}:${key}`;
+    setShowBdBuyerInput(null);
     setPendingBreakdown(bdKey);
     try {
-      const updated = await sharedApi.updateBreakdownItem(shareToken, item._id, key, !bd.purchased);
+      const updated = await sharedApi.updateBreakdownItem(shareToken, item._id, key, purchased, name);
       setItems((prev) => prev.map((i) => (i._id === item._id ? updated : i)));
     } catch {
       setError('Nu s-a putut actualiza elementul.');
     } finally {
       setPendingBreakdown(null);
+      setBdBuyerName((prev) => { const n = { ...prev }; delete n[bdKey]; return n; });
     }
   };
 
@@ -125,6 +155,14 @@ export function SharedPage() {
 
   return (
     <main className="app">
+      {isAuthenticated && (
+        <div className="page-nav">
+          <button className="btn-back" onClick={() => navigate('/')}>
+            ← wishlist-ul meu
+          </button>
+        </div>
+      )}
+
       <div className="shared-header">
         <span className="budget-title">✦ wishlist</span>
         <span className="shared-owner">al lui {username}</span>
@@ -228,27 +266,54 @@ export function SharedPage() {
                 <div className="breakdown-panel">
                   {item.breakdown!.map((b) => {
                     const bdKey = `${item._id}:${b.key}`;
+                    const isWaitingBd = showBdBuyerInput === bdKey;
                     return (
-                      <div key={b.key} className="breakdown-row">
-                        <button
-                          className={`bd-check ${b.purchased ? 'bd-check-done' : ''}`}
-                          onClick={() => handleToggleBreakdown(item, b.key)}
-                          disabled={pendingBreakdown === bdKey}
-                          aria-label={`${b.purchased ? 'Anulează' : 'Cumpără'} ${getFieldLabel(b.key)}`}
-                        >
-                          {b.purchased && (
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="1.5,5 4,7.5 8.5,2.5" />
-                            </svg>
-                          )}
-                        </button>
-                        <span className="bd-icon">{getFieldIcon(b.key)}</span>
-                        <span className={`bd-label ${b.purchased ? 'bd-done' : ''}`}>
-                          {getFieldLabel(b.key)}
-                        </span>
-                        <span className={`bd-amount ${b.purchased ? 'bd-done' : ''}`}>
-                          {formatCurrency(b.amount)}
-                        </span>
+                      <div key={b.key}>
+                        <div className="breakdown-row">
+                          <button
+                            className={`bd-check ${b.purchased ? 'bd-check-done' : ''}`}
+                            onClick={() => handleToggleBreakdown(item, b.key)}
+                            disabled={pendingBreakdown === bdKey}
+                            aria-label={`${b.purchased ? 'Anulează' : 'Cumpără'} ${getFieldLabel(b.key)}`}
+                          >
+                            {b.purchased && (
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="1.5,5 4,7.5 8.5,2.5" />
+                              </svg>
+                            )}
+                          </button>
+                          <span className="bd-icon">{getFieldIcon(b.key)}</span>
+                          <span className={`bd-label ${b.purchased ? 'bd-done' : ''}`}>
+                            {getFieldLabel(b.key)}
+                          </span>
+                          <span className={`bd-amount ${b.purchased ? 'bd-done' : ''}`}>
+                            {formatCurrency(b.amount)}
+                          </span>
+                        </div>
+                        {isWaitingBd && (
+                          <div className="shared-buyer-row">
+                            <input
+                              className="adjust-input"
+                              type="text"
+                              placeholder="numele tău (opțional)"
+                              value={bdBuyerName[bdKey] ?? ''}
+                              onChange={(e) => setBdBuyerName((prev) => ({ ...prev, [bdKey]: e.target.value }))}
+                              autoFocus
+                            />
+                            <button
+                              className="btn-confirm confirm-add"
+                              onClick={() => confirmToggleBreakdown(item, b.key, true, bdBuyerName[bdKey]?.trim() || undefined)}
+                            >
+                              confirmă ✓
+                            </button>
+                            <button
+                              className="btn-edit-budget"
+                              onClick={() => setShowBdBuyerInput(null)}
+                            >
+                              anulează
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

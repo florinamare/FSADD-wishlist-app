@@ -2,6 +2,7 @@ const User = require('../models/User');
 const WishlistItem = require('../models/WishlistItem');
 const Friend = require('../models/Friend');
 const Notification = require('../models/Notification');
+const { getOrCreate: getOrCreateBudget } = require('./budgetController');
 
 const emitNotification = (userId, notification) => {
   try {
@@ -103,31 +104,59 @@ const updateSharedItem = async (req, res) => {
       return res.status(400).json({ error: 'Field purchased must be a boolean.' });
     }
 
-    const user = await User.findOne({ shareToken: req.params.shareToken }).select('_id');
-    if (!user) return res.status(404).json({ error: 'Wishlist not found.' });
+    const owner = await User.findOne({ shareToken: req.params.shareToken }).select('_id username');
+    if (!owner) return res.status(404).json({ error: 'Wishlist not found.' });
 
     const update = { purchased };
     if (typeof boughtBy === 'string') update.boughtBy = boughtBy.trim() || null;
 
     const item = await WishlistItem.findOneAndUpdate(
-      { _id: req.params.id, userId: user._id },
+      { _id: req.params.id, userId: owner._id },
       { $set: update },
       { new: true, runValidators: true }
     );
 
     if (!item) return res.status(404).json({ error: 'Item not found.' });
 
+    // Notifică proprietarul wishlist-ului
     if (purchased) {
       const buyer = update.boughtBy || 'Cineva';
       const notification = await Notification.create({
         userId: user._id,
         type: 'purchased',
-        message: `${buyer} a bifat "${item.name}" ca cumpărat.`,
+        message: `${buyerName} a cumpărat "${item.name}".`,
         itemName: item.name,
         boughtBy: update.boughtBy || null,
       });
 
       emitNotification(user._id, { type: 'item:purchased', notification });
+    }
+
+    // Ajustează bugetul CUMPĂRĂTORULUI autentificat (req.userId = buyer, nu owner)
+    if (req.userId) {
+      try {
+        const buyerBudget = await getOrCreateBudget(req.userId);
+        if (purchased) {
+          buyerBudget.amount -= item.price;
+          buyerBudget.history.push({
+            type: 'subtract',
+            amount: item.price,
+            note: `Cumpărat: ${item.name} (wishlist ${owner.username})`,
+            createdAt: new Date(),
+          });
+        } else {
+          buyerBudget.amount += item.price;
+          buyerBudget.history.push({
+            type: 'add',
+            amount: item.price,
+            note: `Anulat: ${item.name} (wishlist ${owner.username})`,
+            createdAt: new Date(),
+          });
+        }
+        await buyerBudget.save();
+      } catch {
+        // best-effort — nu bloca răspunsul principal
+      }
     }
 
     return res.json(item);
@@ -139,16 +168,16 @@ const updateSharedItem = async (req, res) => {
 // PATCH /api/shared/:shareToken/items/:id/breakdown/:key
 const updateSharedBreakdownItem = async (req, res) => {
   try {
-    const { purchased } = req.body;
+    const { purchased, boughtBy } = req.body;
     if (typeof purchased !== 'boolean') {
       return res.status(400).json({ error: 'Field purchased must be a boolean.' });
     }
 
-    const user = await User.findOne({ shareToken: req.params.shareToken }).select('_id');
-    if (!user) return res.status(404).json({ error: 'Wishlist not found.' });
+    const owner = await User.findOne({ shareToken: req.params.shareToken }).select('_id username');
+    if (!owner) return res.status(404).json({ error: 'Wishlist not found.' });
 
     const item = await WishlistItem.findOneAndUpdate(
-      { _id: req.params.id, userId: user._id },
+      { _id: req.params.id, userId: owner._id },
       { $set: { 'breakdown.$[elem].purchased': purchased } },
       {
         arrayFilters: [{ 'elem.key': req.params.key }],
@@ -158,6 +187,57 @@ const updateSharedBreakdownItem = async (req, res) => {
     );
 
     if (!item) return res.status(404).json({ error: 'Item not found.' });
+
+    const bd = item.breakdown?.find((b) => b.key === req.params.key);
+
+    // Notifică proprietarul când un element din breakdown e cumpărat
+    if (purchased && bd) {
+      // Prioritate: boughtBy din body → username din token → 'Cineva'
+      let buyerName = (typeof boughtBy === 'string' && boughtBy.trim()) ? boughtBy.trim() : null;
+      if (!buyerName && req.userId) {
+        try {
+          const buyer = await User.findById(req.userId).select('username');
+          if (buyer) buyerName = buyer.username;
+        } catch { /* best-effort */ }
+      }
+      const displayName = buyerName || 'Cineva';
+
+      await Notification.create({
+        userId: owner._id,
+        type: 'purchased',
+        message: `${displayName} a plătit o parte din "${item.name}".`,
+        itemName: item.name,
+        boughtBy: buyerName,
+      });
+    }
+
+    // Ajustează bugetul CUMPĂRĂTORULUI autentificat
+    if (req.userId && bd) {
+      try {
+        const buyerBudget = await getOrCreateBudget(req.userId);
+        if (purchased) {
+          buyerBudget.amount -= bd.amount;
+          buyerBudget.history.push({
+            type: 'subtract',
+            amount: bd.amount,
+            note: `Plătit parte din "${item.name}" (wishlist ${owner.username})`,
+            createdAt: new Date(),
+          });
+        } else {
+          buyerBudget.amount += bd.amount;
+          buyerBudget.history.push({
+            type: 'add',
+            amount: bd.amount,
+            note: `Anulat parte din "${item.name}" (wishlist ${owner.username})`,
+            createdAt: new Date(),
+          });
+        }
+        await buyerBudget.save();
+      } catch {
+        // best-effort
+      }
+    }
+
     return res.json(item);
   } catch (err) {
     return res.status(500).json({ error: 'Failed to update breakdown item.' });

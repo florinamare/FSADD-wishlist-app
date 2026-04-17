@@ -149,14 +149,39 @@ export const notificationsApi = {
     }).then(handleResponse),
 };
 
+export interface UserProfile {
+  _id: string;
+  username: string;
+  email: string;
+  shareToken: string;
+  createdAt: string;
+}
+
+export const profileApi = {
+  get: (): Promise<UserProfile> =>
+    fetch(`${BASE_URL}/profile`, { headers: authHeaders() }).then(handleResponse),
+
+  updatePassword: (oldPassword: string, newPassword: string): Promise<{ message: string }> =>
+    fetch(`${BASE_URL}/profile/password`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ oldPassword, newPassword }),
+    }).then(handleResponse),
+};
+
 export interface SharedWishlist {
   username: string;
   items: WishlistItem[];
 }
 
 export const sharedApi = {
-  getWishlist: (shareToken: string): Promise<SharedWishlist> =>
-    fetch(`${BASE_URL}/shared/${shareToken}`).then(handleResponse),
+  // visitorToken = shareToken-ul vizitatorului (pentru notificări de tip visited)
+  getWishlist: async (shareToken: string, visitorToken?: string): Promise<SharedWishlist> => {
+    const url = visitorToken
+      ? `${BASE_URL}/shared/${shareToken}?visitorToken=${encodeURIComponent(visitorToken)}`
+      : `${BASE_URL}/shared/${shareToken}`;
+    return fetch(url).then(handleResponse);
+  },
 
   updateItem: (
     shareToken: string,
@@ -166,7 +191,8 @@ export const sharedApi = {
   ): Promise<WishlistItem> =>
     fetch(`${BASE_URL}/shared/${shareToken}/items/${itemId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      // Auth headers opționale: dacă e logat, backend-ul îi scade din buget
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ purchased, boughtBy }),
     }).then(handleResponse),
 
@@ -174,12 +200,13 @@ export const sharedApi = {
     shareToken: string,
     itemId: string,
     key: string,
-    purchased: boolean
+    purchased: boolean,
+    boughtBy?: string
   ): Promise<WishlistItem> =>
     fetch(`${BASE_URL}/shared/${shareToken}/items/${itemId}/breakdown/${key}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ purchased }),
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ purchased, boughtBy }),
     }).then(handleResponse),
 };
 

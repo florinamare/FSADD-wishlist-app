@@ -201,7 +201,7 @@ export function HomePage() {
         )}
 
         {!isLoading && items.length === 0 && (
-          <p className="state-msg">no wishes added yet</p>
+          <p className="state-msg">nicio dorință adăugată încă</p>
         )}
 
         {!isLoading && items.map((item) => (
