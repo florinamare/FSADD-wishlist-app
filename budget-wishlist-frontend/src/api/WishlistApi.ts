@@ -149,25 +149,6 @@ export const notificationsApi = {
     }).then(handleResponse),
 };
 
-export interface UserProfile {
-  _id: string;
-  username: string;
-  email: string;
-  shareToken: string;
-  createdAt: string;
-}
-
-export const profileApi = {
-  get: (): Promise<UserProfile> =>
-    fetch(`${BASE_URL}/profile`, { headers: authHeaders() }).then(handleResponse),
-
-  updatePassword: (oldPassword: string, newPassword: string): Promise<{ message: string }> =>
-    fetch(`${BASE_URL}/profile/password`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify({ oldPassword, newPassword }),
-    }).then(handleResponse),
-};
 
 export interface SharedWishlist {
   username: string;

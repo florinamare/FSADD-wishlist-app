@@ -44,7 +44,12 @@ export const NotificationsPanel = ({
     <div className="notifications-panel">
       <div className="notifications-panel-header">
         <span className="section-label" style={{ margin: 0 }}>notificări</span>
-        <button className="btn-edit-budget" onClick={onClose}>✕ închide</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {hasUnread && (
+            <button className="btn-edit-budget" onClick={onMarkAllRead}>marchează citite</button>
+          )}
+          <button className="btn-edit-budget" onClick={onClose}>✕ închide</button>
+        </div>
       </div>
 
       {notifications.length === 0 ? (
