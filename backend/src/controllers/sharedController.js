@@ -122,14 +122,14 @@ const updateSharedItem = async (req, res) => {
     if (purchased) {
       const buyer = update.boughtBy || 'Cineva';
       const notification = await Notification.create({
-        userId: user._id,
+        userId: owner._id,
         type: 'purchased',
-        message: `${buyerName} a cumpărat "${item.name}".`,
+        message: `${buyer} a cumpărat "${item.name}".`,
         itemName: item.name,
         boughtBy: update.boughtBy || null,
       });
 
-      emitNotification(user._id, { type: 'item:purchased', notification });
+      emitNotification(owner._id, { type: 'item:purchased', notification });
     }
 
     // Ajustează bugetul CUMPĂRĂTORULUI autentificat (req.userId = buyer, nu owner)

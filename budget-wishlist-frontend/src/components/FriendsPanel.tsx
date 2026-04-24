@@ -25,6 +25,7 @@ export function FriendsPanel({ onClose }: Props) {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (query.length < 3) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchResults([]);
       return;
     }
