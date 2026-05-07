@@ -1,0 +1,159 @@
+import { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+import { AdjustType, BudgetAdjustment } from '../types';
+import { formatCurrency } from '../utils/BugetUtils';
+
+interface Props {
+  budget: number;
+  totalSpent: number;
+  remaining: number;
+  budgetHistory: BudgetAdjustment[];
+  onAdjust: (type: AdjustType, amount: number, note?: string) => void;
+  shareToken?: string;
+}
+
+export const BudgetHeader = ({ budget, totalSpent, remaining, budgetHistory, onAdjust, shareToken }: Props) => {
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [adjustType, setAdjustType] = useState<AdjustType>('add');
+  const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
+  const [error, setError] = useState('');
+  const [showQR, setShowQR] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const shareUrl = shareToken ? `${window.location.origin}/shared/${shareToken}` : '';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const pct = budget > 0 ? Math.min(100, Math.round((totalSpent / budget) * 100)) : 0;
+  const progressColor = pct > 85 ? 'red' : pct > 60 ? 'yellow' : 'green';
+  const remainingColor = remaining < 0 ? 'red' : remaining < budget * 0.3 ? 'yellow' : 'green';
+
+  const handleAdjust = () => {
+    const value = parseFloat(amount);
+    if (isNaN(value) || value <= 0) {
+      setError('Please enter a valid amount.');
+      return;
+    }
+    if (adjustType === 'subtract' && value > budget) {
+      setError('Cannot subtract more than the total budget.');
+      return;
+    }
+    onAdjust(adjustType, value, note.trim() || undefined);
+    setAmount('');
+    setNote('');
+    setError('');
+  };
+
+  return (
+    <div className="budget-header">
+      <div className="budget-title-row">
+        <span className="budget-title">✦ budget wishlist</span>
+        <button className="btn-edit-budget" onClick={() => setPanelOpen((p) => !p)}>
+          {panelOpen ? '✕ close' : '✎ adjust budget'}
+        </button>
+      </div>
+
+      <div className="budget-stats-grid">
+        <div className="budget-stat">
+          <span className="budget-stat-label">total budget</span>
+          <span className="budget-stat-value">{formatCurrency(budget)}</span>
+        </div>
+        <div className="budget-stat">
+          <span className="budget-stat-label">spent</span>
+          <span className="budget-stat-value">{formatCurrency(totalSpent)}</span>
+        </div>
+        <div className="budget-stat">
+          <span className="budget-stat-label">remaining</span>
+          <span className={`budget-stat-value ${remainingColor}`}>{formatCurrency(remaining)}</span>
+        </div>
+      </div>
+
+      <div className="progress-wrap">
+        <div className={`progress-bar ${progressColor}`} style={{ width: `${pct}%` }} />
+      </div>
+
+      {shareToken && (
+        <div className="share-row">
+          <button className="btn-share-copy" onClick={handleCopy}>
+            {copied ? '✓ copied' : '⎘ copy link'}
+          </button>
+          <button className="btn-share-qr" onClick={() => setShowQR((p) => !p)}>
+            {showQR ? '✕ hide QR' : '▣ QR code'}
+          </button>
+          {showQR && (
+            <div className="share-qr-panel">
+              <QRCodeSVG value={shareUrl} size={140} />
+              <p className="share-qr-hint">scanează pentru a vedea wishlist-ul</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {panelOpen && (
+        <div className="adjust-panel">
+          <span className="adjust-label">amount to adjust</span>
+          <div className="adjust-row">
+            <div className="type-toggle">
+              <button
+                className={adjustType === 'add' ? 'active-add' : ''}
+                onClick={() => setAdjustType('add')}
+              >
+                + add
+              </button>
+              <button
+                className={adjustType === 'subtract' ? 'active-sub' : ''}
+                onClick={() => setAdjustType('subtract')}
+              >
+                − subtract
+              </button>
+            </div>
+            <input
+              className={`adjust-input ${adjustType === 'add' ? 'input-green' : 'input-red'}`}
+              type="number"
+              placeholder="e.g. 500"
+              min="0"
+              value={amount}
+              onChange={(e) => { setAmount(e.target.value); setError(''); }}
+            />
+            <input
+              className="adjust-input"
+              type="text"
+              placeholder="reason (optional)"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              style={{ maxWidth: 140 }}
+            />
+            <button
+              className={`btn-confirm ${adjustType === 'add' ? 'confirm-add' : 'confirm-sub'}`}
+              onClick={handleAdjust}
+            >
+              apply ↗
+            </button>
+          </div>
+          {error && <p className="error-msg">{error}</p>}
+
+          {budgetHistory.length > 0 && (
+            <div className="history-list">
+              {[...budgetHistory].reverse().map((h, i) => (
+                <div key={i} className="history-entry">
+                  <span className="history-note">
+                    {h.note || (h.type === 'add' ? 'budget added' : 'budget withdrawn')}
+                  </span>
+                  <span className={`history-amount ${h.type === 'add' ? 'history-add' : 'history-sub'}`}>
+                    {h.type === 'add' ? '+' : '−'}{formatCurrency(h.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
