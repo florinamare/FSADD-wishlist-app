@@ -4,8 +4,9 @@ const BreakdownItemSchema = new mongoose.Schema(
   {
     key: {
       type: String,
-      enum: ['accommodation', 'flights', 'food', 'activities'],
       required: true,
+      trim: true,
+      maxlength: [100, 'Key cannot exceed 100 characters.'],
     },
     amount: {
       type: Number,
@@ -22,16 +23,28 @@ const BreakdownItemSchema = new mongoose.Schema(
 
 const WishlistItemSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'userId is required.'],
+      index: true,
+    },
+    wishlistId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Wishlist',
+      index: true,
+      default: null,
+    },
     name: {
       type: String,
-      required: [true, 'Numele este obligatoriu.'],
+      required: [true, 'Name is required.'],
       trim: true,
-      maxlength: [200, 'Numele nu poate depăși 200 de caractere.'],
+      maxlength: [200, 'Name cannot exceed 200 characters.'],
     },
     price: {
       type: Number,
-      required: [true, 'Prețul este obligatoriu.'],
-      min: [0, 'Prețul nu poate fi negativ.'],
+      required: [true, 'Price is required.'],
+      min: [0, 'Price cannot be negative.'],
     },
     priority: {
       type: String,
@@ -41,6 +54,16 @@ const WishlistItemSchema = new mongoose.Schema(
     purchased: {
       type: Boolean,
       default: false,
+    },
+    boughtBy: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: [100, 'boughtBy cannot exceed 100 characters.'],
+    },
+    imageUrl: {
+      type: String,
+      default: null,
     },
     breakdown: {
       type: [BreakdownItemSchema],
